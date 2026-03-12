@@ -21,7 +21,21 @@ class CreateCustomerE extends CustomerEvent {
 class DeleteCustomerE extends CustomerEvent {
   final int id;
 
-  const DeleteCustomerE({
+  const DeleteCustomerE({required this.id});
+}
+
+class UpdateCustomerE extends CustomerEvent {
+  final int id;
+  final String fish;
+  final int qarzdorlik;
+  final String manzil;
+  final String telefon;
+
+  const UpdateCustomerE({
     required this.id,
-});
+    required this.fish,
+    required this.qarzdorlik,
+    required this.manzil,
+    required this.telefon,
+  });
 }

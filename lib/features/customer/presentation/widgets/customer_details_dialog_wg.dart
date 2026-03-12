@@ -1,15 +1,14 @@
 import 'package:flutter/material.dart';
 import '../pages/customer_page.dart';
 
-// Mijozning qarzga olgan tovarlari (dialog ichidagi jadval uchun)
 class CustomerDebtItem {
   final String productName;
-  final String metr;        // "50M" yoki "-"
-  final String dona;        // "50" yoki "-"
-  final String packet;      // "2" yoki "-"
-  final String debtPrice;   // "70$" yoki "500 000 so'm"
-  final String takenTime;   // "12:15" yoki "02.19.2026/17:23"
-  final String imageAsset;  // asset: "assets/images/product.png"
+  final String metr;
+  final String dona;
+  final String packet;
+  final String debtPrice;
+  final String takenTime;
+  final String imageAsset;
 
   const CustomerDebtItem({
     required this.productName,
@@ -39,16 +38,12 @@ class CustomerDetailsDialog extends StatelessWidget {
       insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
       child: ConstrainedBox(
-        constraints: const BoxConstraints(
-          maxWidth: 1150,
-          minWidth: 900,
-        ),
+        constraints: const BoxConstraints(maxWidth: 1150, minWidth: 900),
         child: Padding(
           padding: const EdgeInsets.fromLTRB(18, 14, 18, 18),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // TOP BAR (Title + close)
               Row(
                 children: [
                   Expanded(
@@ -74,12 +69,10 @@ class CustomerDetailsDialog extends StatelessWidget {
 
               const SizedBox(height: 10),
 
-              // INFO (telefon, manzil, umumiy qarz)
               _CustomerInfoBar(customer: customer),
 
               const SizedBox(height: 12),
 
-              // TABLE (scroll if needed)
               Flexible(
                 child: SingleChildScrollView(
                   child: _DebtTable(rows: rows),
@@ -155,7 +148,6 @@ class _DebtTable extends StatelessWidget {
 
     return Column(
       children: [
-        // HEADER
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 10),
           child: Row(
@@ -177,7 +169,6 @@ class _DebtTable extends StatelessWidget {
         ),
         Divider(height: 1, color: Colors.grey.shade300),
 
-        // ROWS
         ...List.generate(rows.length, (index) {
           final r = rows[index];
 
@@ -188,7 +179,6 @@ class _DebtTable extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   child: Row(
                     children: [
-                      // Product column (image + name)
                       Expanded(
                         flex: 5,
                         child: Row(
@@ -229,7 +219,6 @@ class _DebtTable extends StatelessWidget {
                           ],
                         ),
                       ),
-
                       Expanded(flex: 2, child: Text(r.metr)),
                       Expanded(flex: 2, child: Text(r.dona)),
                       Expanded(flex: 2, child: Text(r.packet)),

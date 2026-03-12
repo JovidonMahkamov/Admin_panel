@@ -123,7 +123,7 @@ class _WorkersPageState extends State<WorkersPage> {
           fish: worker.fish,
           telefon: worker.telefon,
           login: worker.login,
-          parol: '',
+          parol: worker.parol,
         ),
         onSave: (updatedWorker) {
           context.read<UpdateWorkerBloc>().add(
@@ -131,7 +131,8 @@ class _WorkersPageState extends State<WorkersPage> {
               id: updatedWorker.id!,
               fish: updatedWorker.fish,
               parol: updatedWorker.parol,
-              telefon: updatedWorker.telefon, login: '',
+              login: updatedWorker.login,
+              telefon: updatedWorker.telefon,
             ),
           );
         },

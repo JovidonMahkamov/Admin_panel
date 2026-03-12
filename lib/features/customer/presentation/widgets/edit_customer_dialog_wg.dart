@@ -1,11 +1,10 @@
-import 'package:admin_panel/features/customer/presentation/pages/customer_page.dart';
-import 'package:admin_panel/features/dashboard/presentation/widgets/elvated_button_wg.dart';
 import 'package:flutter/material.dart';
-
+import '../../../dashboard/presentation/widgets/elvated_button_wg.dart';
+import '../pages/customer_page.dart';
 
 class EditCustomerDialog extends StatefulWidget {
   final String title;
-  final CustomerRow? initial; // edit uchun
+  final CustomerRow? initial;
   final ValueChanged<CustomerRow> onSave;
 
   const EditCustomerDialog({
@@ -30,10 +29,10 @@ class _EditCustomerDialogState extends State<EditCustomerDialog> {
   @override
   void initState() {
     super.initState();
-    _nameCtrl  = TextEditingController(text: widget.initial?.customerName ?? "");
+    _nameCtrl = TextEditingController(text: widget.initial?.customerName ?? "");
     _phoneCtrl = TextEditingController(text: widget.initial?.phone ?? "");
     _addressCtrl = TextEditingController(text: widget.initial?.address ?? "");
-    _debtCtrl  = TextEditingController(text: widget.initial?.debt ?? "");
+    _debtCtrl = TextEditingController(text: widget.initial?.debt ?? "");
   }
 
   @override
@@ -175,7 +174,6 @@ class _EditCustomerDialogState extends State<EditCustomerDialog> {
                             label: "Qarzdorligi",
                             hint: "sum/\$",
                             controller: _debtCtrl,
-                            obscureText: true,
                             validator: _required,
                           ),
                           const SizedBox(height: 18),
@@ -191,7 +189,7 @@ class _EditCustomerDialogState extends State<EditCustomerDialog> {
 
                 Align(
                   alignment: Alignment.centerRight,
-                  child:  ElevatedWidget(
+                  child: ElevatedWidget(
                     size: 250,
                     onPressed: _save,
                     text: isEdit ? "Yangilash" : "Saqlash",
@@ -212,6 +210,7 @@ class _EditCustomerDialogState extends State<EditCustomerDialog> {
     return null;
   }
 }
+
 class _LabeledField extends StatelessWidget {
   final String label;
   final String hint;

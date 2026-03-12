@@ -1,7 +1,13 @@
-import 'package:admin_panel/features/customer/presentation/widgets/customer_details_dialog_wg.dart';
-import 'package:admin_panel/features/customer/presentation/widgets/edit_customer_dialog_wg.dart';
+import 'package:admin_panel/features/customer/presentation/bloc/update_customer/update_customer_state.dart';
 import 'package:flutter/material.dart';
-
+import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../domain/entity/get_customer_entity.dart';
+import '../bloc/customer_event.dart';
+import '../bloc/get_all_customers/get_all_customers_bloc.dart';
+import '../bloc/get_all_customers/get_all_customers_state.dart';
+import '../bloc/update_customer/update_customer_bloc.dart';
+import '../widgets/customer_details_dialog_wg.dart';
+import '../widgets/edit_customer_dialog_wg.dart';
 
 class CustomerPage extends StatefulWidget {
   const CustomerPage({super.key});
@@ -11,63 +17,53 @@ class CustomerPage extends StatefulWidget {
 }
 
 class _CustomerPageState extends State<CustomerPage> {
-  void _openCustomerDetails(CustomerRow customer) {
+  @override
+  void initState() {
+    super.initState();
+    context.read<GetAllCustomersBloc>().add(GetAllCustomersE());
+  }
+
+  void _openCustomerDetails(GetCustomerEntity customer) {
     showDialog(
       context: context,
       barrierDismissible: true,
       builder: (_) => CustomerDetailsDialog(
-        customer: customer,
-        rows: const [
-          CustomerDebtItem(
-            productName: "0422 Senior",
-            metr: "50M",
-            dona: "-",
-            packet: "-",
-            debtPrice: "70\$",
-            takenTime: "02.19.2026/17:23",
-            imageAsset: "assets/images/product.png",
-          ),
-          CustomerDebtItem(
-            productName: "Maxsulot 2",
-            metr: "-",
-            dona: "10",
-            packet: "-",
-            debtPrice: "500 000 so'm",
-            takenTime: "02.19.2026/18:10",
-            imageAsset: "assets/images/product.png",
-          ),
-        ],
+        customer: CustomerRow(
+          customerName: customer.fish,
+          phone: customer.telefon,
+          address: customer.manzil,
+          debt: customer.qarzdorlik.toString(),
+        ),
+        rows: const [],
       ),
     );
   }
 
-
-  final List<CustomerRow> _rows = [
-    CustomerRow(
-      customerName: "Aliyev Anvar Alisher o‘g‘li",
-      phone: "+998 566 12 22",
-      address: 'Yakkasaroy',
-      debt: '500 000',
-
-    ),
-    CustomerRow(
-      customerName: "Executive Director",
-      phone: "+998 566 12 22",
-      address: 'Chilonzor',
-      debt: '2 000 000',
-
-    ),
-  ];
-
-  void _openEditCustomerDialog(int index, CustomerRow customer) {
+  void _openEditCustomerDialog(GetCustomerEntity customer) {
     showDialog(
       context: context,
       barrierDismissible: true,
       builder: (_) => EditCustomerDialog(
         title: "Tahrirlash",
-        initial: customer,
+        initial: CustomerRow(
+          customerName: customer.fish,
+          phone: customer.telefon,
+          address: customer.manzil,
+          debt: "${customer.qarzdorlik}",
+        ),
         onSave: (updatedCustomer) {
-          setState(() => _rows[index] = updatedCustomer);
+          final cleanedDebt = updatedCustomer.debt
+              .replaceAll(" ", "");
+          context.read<UpdateCustomerBloc>().add(
+            UpdateCustomerE(
+              id: customer.id,
+              fish: updatedCustomer.customerName,
+              telefon: updatedCustomer.phone,
+              manzil: updatedCustomer.address,
+              qarzdorlik: (num.tryParse(cleanedDebt) ?? 0).toInt(),
+            ),
+          );
+
           Navigator.pop(context);
         },
       ),
@@ -78,83 +74,112 @@ class _CustomerPageState extends State<CustomerPage> {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(22),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          const SizedBox(height: 18),
-          Expanded(
-            child: SingleChildScrollView(
-              child: Container(
-                padding: const EdgeInsets.all(18),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(18),
-                  boxShadow: [
-                    BoxShadow(
-                      blurRadius: 18,
-                      offset: const Offset(0, 10),
-                      color: Colors.black.withOpacity(0.06),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Row(
-                      children: [
-                        const Expanded(
-                          child: Text(
-                            "Mijozlar",
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w700,
+      child: BlocListener<UpdateCustomerBloc, UpdateCustomerState>(
+        listener: (context, state) {
+          if (state is UpdateCustomersSuccess) {
+            context.read<GetAllCustomersBloc>().add(GetAllCustomersE());
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text("Mijoz muvaffaqiyatli yangilandi")),
+            );
+          }
+          if (state is UpdateCustomersError) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text("Xatolik: ${state.message}")),
+            );
+          }
+        },
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const SizedBox(height: 18),
+            Expanded(
+              child: SingleChildScrollView(
+                child: Container(
+                  padding: const EdgeInsets.all(18),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(18),
+                    boxShadow: [
+                      BoxShadow(
+                        blurRadius: 18,
+                        offset: const Offset(0, 10),
+                        color: Colors.black.withOpacity(0.06),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Row(
+                        children: const [
+                          Expanded(
+                            child: Text(
+                              "Mijozlar",
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w700,
+                              ),
                             ),
                           ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 14),
-                    const Divider(height: 1),
-                    const SizedBox(height: 10),
+                        ],
+                      ),
+                      const SizedBox(height: 14),
+                      const Divider(height: 1),
+                      const SizedBox(height: 10),
 
-                    _CustomerTable(
-                      rows: _rows,
-                      onEdit: (index, worker) => _openEditCustomerDialog(index, worker),
-                      onRowTap: (customer) => _openCustomerDetails(customer),
-                    ),
+                      BlocBuilder<GetAllCustomersBloc, GetAllCustomersState>(
+                        builder: (context, state) {
+                          if (state is GetAllCustomersLoading) {
+                            return const Center(
+                              child: CircularProgressIndicator(),
+                            );
+                          }
 
-                  ],
+                          if (state is GetAllCustomersError) {
+                            return Center(
+                              child: Text(
+                                state.message,
+                                style: const TextStyle(color: Colors.red),
+                              ),
+                            );
+                          }
+
+                          if (state is GetAllCustomersSuccess) {
+                            final rows = state.getAllCustomersEntity.data;
+
+                            if (rows.isEmpty) {
+                              return const Center(
+                                child: Text("Mijozlar mavjud emas"),
+                              );
+                            }
+
+                            return _CustomerTable(
+                              rows: rows,
+                              onEdit: (index, customer) =>
+                                  _openEditCustomerDialog(customer),
+                              onRowTap: _openCustomerDetails,
+                            );
+                          }
+
+                          return const SizedBox.shrink();
+                        },
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 }
 
-
-class CustomerRow {
-  final String customerName;
-  final String phone;
-  final String address;
-  final String debt;
-
-
-  const CustomerRow({
-    required this.customerName,
-    required this.phone,
-    required this.address,
-    required this.debt,
-
-  });
-}
-
 class _CustomerTable extends StatelessWidget {
-  final List<CustomerRow> rows;
-  final void Function(int index, CustomerRow customer) onEdit;
-  final ValueChanged<CustomerRow> onRowTap;
+  final List<GetCustomerEntity> rows;
+  final void Function(int index, GetCustomerEntity customer) onEdit;
+  final ValueChanged<GetCustomerEntity> onRowTap;
 
   const _CustomerTable({
     required this.rows,
@@ -177,7 +202,10 @@ class _CustomerTable extends StatelessWidget {
             children: [
               SizedBox(width: 70, child: Text("S/N", style: headerStyle)),
               Expanded(flex: 4, child: Text("Mijoz", style: headerStyle)),
-              Expanded(flex: 2, child: Text("Telefon nomer", style: headerStyle)),
+              Expanded(
+                flex: 2,
+                child: Text("Telefon nomer", style: headerStyle),
+              ),
               Expanded(flex: 2, child: Text("Manzil", style: headerStyle)),
               Expanded(flex: 2, child: Text("Qarzdorligi", style: headerStyle)),
               Expanded(flex: 2, child: Text("", style: headerStyle)),
@@ -199,24 +227,19 @@ class _CustomerTable extends StatelessWidget {
                   child: Row(
                     children: [
                       SizedBox(width: 70, child: Text(sn)),
-                      Expanded(flex: 4, child: Text(r.customerName)),
-                      Expanded(flex: 2, child: Text(r.phone)),
-                      Expanded(flex: 2, child: Text(r.address)),
-                      Expanded(flex: 2, child: Text(r.debt)),
-
+                      Expanded(flex: 4, child: Text(r.fish)),
+                      Expanded(flex: 2, child: Text(r.telefon)),
+                      Expanded(flex: 2, child: Text(r.manzil)),
+                      Expanded(flex: 2, child: Text(r.qarzdorlik.toString())),
                       Expanded(
                         flex: 2,
-                        child: Row(
-                          children: [
-                            GestureDetector(
-                              behavior: HitTestBehavior.opaque,
-                              onTap: () => onEdit(index, r),
-                              child: const Padding(
-                                padding: EdgeInsets.all(6),
-                                child: Icon(Icons.edit, color: Colors.blue),
-                              ),
-                            ),
-                          ],
+                        child: GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTap: () => onEdit(index, r),
+                          child: const Padding(
+                            padding: EdgeInsets.all(6),
+                            child: Icon(Icons.edit, color: Colors.blue),
+                          ),
                         ),
                       ),
                     ],
@@ -231,14 +254,12 @@ class _CustomerTable extends StatelessWidget {
     );
   }
 }
+
 class _ClickableRow extends StatelessWidget {
   final Widget child;
   final VoidCallback onTap;
 
-  const _ClickableRow({
-    required this.child,
-    required this.onTap,
-  });
+  const _ClickableRow({required this.child, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -254,4 +275,16 @@ class _ClickableRow extends StatelessWidget {
   }
 }
 
+class CustomerRow {
+  final String customerName;
+  final String phone;
+  final String address;
+  final String debt;
 
+  const CustomerRow({
+    required this.customerName,
+    required this.phone,
+    required this.address,
+    required this.debt,
+  });
+}

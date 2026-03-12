@@ -80,7 +80,7 @@ class _AddEditProductDialogState extends State<AddEditProductDialog> {
   void _save() {
     if (!_formKey.currentState!.validate()) return;
 
-    final oldSold = widget.initial?.sotildi ?? 0;
+    // final oldSold = widget.initial?.sotildi ?? 0;
 
     widget.onSave(
       ProductRow(
@@ -92,7 +92,7 @@ class _AddEditProductDialogState extends State<AddEditProductDialog> {
         metri: _metriCtrl.text.trim(),
         miqdori: _miqdoriCtrl.text.trim(),
 
-        sotildi: oldSold, // ✅ admin o'zgartirmaydi, eski qiymat qoladi
+        // sotildi: oldSold,
         imagePath: _imagePath.trim(),
       ),
     );

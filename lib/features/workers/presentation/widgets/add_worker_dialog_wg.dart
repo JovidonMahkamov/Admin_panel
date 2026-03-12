@@ -186,8 +186,7 @@ class _AddEditWorkerDialogState extends State<AddEditWorkerDialog> {
                                         hint: "XXXXXXXX",
                                         controller: _loginCtrl,
                                         validator: _required,
-                                        enabled: !isEdit,
-                                      ),
+                                        enabled: !isLoading,                                      ),
                                     ),
                                     const SizedBox(width: 18),
                                     Expanded(

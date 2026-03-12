@@ -1,7 +1,11 @@
 import 'dart:io';
+import 'package:admin_panel/features/products/presentation/bloc/products_event.dart';
 import 'package:flutter/material.dart';
-
+import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../dashboard/presentation/widgets/elvated_button_wg.dart';
+import '../../domain/entity/product_entity.dart';
+import '../bloc/get_products/get_products_bloc.dart';
+import '../bloc/get_products/get_products_state.dart';
 import '../widgets/add_edit_product_dialog.dart';
 
 class ProductPage extends StatefulWidget {
@@ -12,30 +16,11 @@ class ProductPage extends StatefulWidget {
 }
 
 class _ProductPageState extends State<ProductPage> {
-  final List<ProductRow> _products = [
-    const ProductRow(
-      productName: "0422 Senior",
-      metrPrice: "12\$",
-      donaPrice: "12\$",
-      packetPrice: "700\$",
-      pachka: "200",
-      metri: "190",
-      miqdori: "190",
-      sotildi: 1,
-      imagePath: "",
-    ),
-    const ProductRow(
-      productName: "0422 Senior",
-      metrPrice: "12\$",
-      donaPrice: "12\$",
-      packetPrice: "700\$",
-      pachka: "200",
-      metri: "190",
-      miqdori: "190",
-      sotildi: 3,
-      imagePath: "",
-    ),
-  ];
+  @override
+  void initState() {
+    super.initState();
+    context.read<GetProductsBloc>().add(GetProductsE());
+  }
 
   void _openAddProductDialog() {
     showDialog(
@@ -44,7 +29,7 @@ class _ProductPageState extends State<ProductPage> {
       builder: (_) => AddEditProductDialog(
         title: "Tovar qo‘shish",
         onSave: (newProduct) {
-          setState(() => _products.add(newProduct));
+          // Hozircha add API ulanmagan bo‘lsa shundoq qoldiring
           Navigator.pop(context);
         },
       ),
@@ -59,7 +44,7 @@ class _ProductPageState extends State<ProductPage> {
         title: "Tovarni tahrirlash",
         initial: product,
         onSave: (updated) {
-          setState(() => _products[index] = updated);
+          // Hozircha update API ulanmagan bo‘lsa shundoq qoldiring
           Navigator.pop(context);
         },
       ),
@@ -73,7 +58,9 @@ class _ProductPageState extends State<ProductPage> {
       builder: (context) {
         return Dialog(
           backgroundColor: Colors.white,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 520),
             child: Padding(
@@ -87,7 +74,10 @@ class _ProductPageState extends State<ProductPage> {
                       const Expanded(
                         child: Text(
                           "O‘chirishni tasdiqlang",
-                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w800,
+                          ),
                         ),
                       ),
                       IconButton(
@@ -130,7 +120,7 @@ class _ProductPageState extends State<ProductPage> {
     );
 
     if (result == true) {
-      setState(() => _products.removeAt(index));
+      // Hozircha delete API ulanmagan bo‘lsa shu joyni keyin Bloc bilan almashtirasiz
     }
   }
 
@@ -165,7 +155,10 @@ class _ProductPageState extends State<ProductPage> {
                         const Expanded(
                           child: Text(
                             "Tovarlarni boshqarish",
-                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w700,
+                            ),
                           ),
                         ),
                         ElevatedWidget(
@@ -180,10 +173,49 @@ class _ProductPageState extends State<ProductPage> {
                     const Divider(height: 1),
                     const SizedBox(height: 10),
 
-                    ProductsTable(
-                      rows: _products,
-                      onEdit: (i, p) => _openEditProductDialog(i, p),
-                      onDelete: (i, p) => _confirmDelete(i, p),
+                    BlocBuilder<GetProductsBloc, GetProductsState>(
+                      builder: (context, state) {
+                        if (state is GetProductsLoading) {
+                          return const Padding(
+                            padding: EdgeInsets.all(40),
+                            child: Center(
+                              child: CircularProgressIndicator(),
+                            ),
+                          );
+                        }
+
+                        if (state is GetProductsError) {
+                          return Padding(
+                            padding: const EdgeInsets.all(24),
+                            child: Center(
+                              child: Text(state.message),
+                            ),
+                          );
+                        }
+
+                        if (state is GetProductsSuccess) {
+                          final rows = state.productEntity
+                              .map((e) => e.toProductRow())
+                              .toList();
+
+                          if (rows.isEmpty) {
+                            return const Padding(
+                              padding: EdgeInsets.all(24),
+                              child: Center(
+                                child: Text("Tovarlar topilmadi"),
+                              ),
+                            );
+                          }
+
+                          return ProductsTable(
+                            rows: rows,
+                            onEdit: (i, p) => _openEditProductDialog(i, p),
+                            onDelete: (i, p) => _confirmDelete(i, p),
+                          );
+                        }
+
+                        return const SizedBox.shrink();
+                      },
                     ),
                   ],
                 ),
@@ -201,12 +233,9 @@ class ProductRow {
   final String metrPrice;
   final String donaPrice;
   final String packetPrice;
-
-  final String pachka;   // NEW
-  final String metri;    // NEW
-  final String miqdori;  // NEW
-  final int sotildi;  // NEW
-
+  final String pachka;
+  final String metri;
+  final String miqdori;
   final String imagePath;
 
   const ProductRow({
@@ -217,7 +246,6 @@ class ProductRow {
     required this.pachka,
     required this.metri,
     required this.miqdori,
-    required this.sotildi,
     required this.imagePath,
   });
 
@@ -229,7 +257,6 @@ class ProductRow {
     String? pachka,
     String? metri,
     String? miqdori,
-    int? sotildi,
     String? imagePath,
   }) {
     return ProductRow(
@@ -240,7 +267,6 @@ class ProductRow {
       pachka: pachka ?? this.pachka,
       metri: metri ?? this.metri,
       miqdori: miqdori ?? this.miqdori,
-      sotildi: sotildi ?? this.sotildi,
       imagePath: imagePath ?? this.imagePath,
     );
   }
@@ -267,7 +293,6 @@ class ProductsTable extends StatelessWidget {
 
     return Column(
       children: [
-        // HEADER (rasmga mos)
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 12),
           child: Row(
@@ -279,7 +304,6 @@ class ProductsTable extends StatelessWidget {
               Expanded(flex: 2, child: Text("Pochka", style: headerStyle)),
               Expanded(flex: 2, child: Text("Metri", style: headerStyle)),
               Expanded(flex: 2, child: Text("Miqdori", style: headerStyle)),
-              Expanded(flex: 2, child: Text("Sotildi", style: headerStyle)),
               Expanded(flex: 2, child: Text("", style: headerStyle)),
             ],
           ),
@@ -296,7 +320,6 @@ class ProductsTable extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   child: Row(
                     children: [
-                      // Product (image + name)
                       Expanded(
                         flex: 5,
                         child: Row(
@@ -306,7 +329,9 @@ class ProductsTable extends StatelessWidget {
                             Expanded(
                               child: Text(
                                 r.productName,
-                                style: const TextStyle(fontWeight: FontWeight.w500),
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w500,
+                                ),
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ),
@@ -319,9 +344,6 @@ class ProductsTable extends StatelessWidget {
                       Expanded(flex: 2, child: Text(r.pachka)),
                       Expanded(flex: 2, child: Text(r.metri)),
                       Expanded(flex: 2, child: Text(r.miqdori)),
-                      Expanded(flex: 2, child: Text(r.sotildi.toString())),
-
-                      // ACTION column (edit/delete)
                       Expanded(
                         flex: 2,
                         child: Row(
@@ -365,13 +387,22 @@ class _ProductImage extends StatelessWidget {
     return ClipRRect(
       borderRadius: BorderRadius.circular(10),
       child: hasFile
-          ? Image.file(File(path), width: 54, height: 54, fit: BoxFit.cover)
+          ? Image.file(
+        File(path),
+        width: 54,
+        height: 54,
+        fit: BoxFit.cover,
+      )
           : Container(
         width: 54,
         height: 54,
         color: Colors.grey.shade200,
         alignment: Alignment.center,
-        child: Icon(Icons.image, size: 20, color: Colors.grey.shade600),
+        child: Icon(
+          Icons.image,
+          size: 20,
+          color: Colors.grey.shade600,
+        ),
       ),
     );
   }
@@ -391,6 +422,21 @@ class _HoverRow extends StatelessWidget {
         splashColor: Colors.black.withOpacity(0.04),
         child: child,
       ),
+    );
+  }
+}
+
+extension ProductEntityMapper on ProductEntity {
+  ProductRow toProductRow() {
+    return ProductRow(
+      productName: nomi ?? '',
+      metrPrice: '${narxMetr ?? 0}',
+      donaPrice: '${narxDona ?? 0}',
+      packetPrice: '${narxPochka ?? 0}',
+      pachka: '${pochka ?? 0}',
+      metri: '${metr ?? 0}',
+      miqdori: '${miqdor ?? 0}',
+      imagePath: rasm ?? '',
     );
   }
 }

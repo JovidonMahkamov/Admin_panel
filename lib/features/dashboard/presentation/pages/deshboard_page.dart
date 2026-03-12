@@ -1,255 +1,190 @@
-import 'package:admin_panel/features/dashboard/presentation/widgets/worker_detail_dialog_wg.dart';
-import 'package:admin_panel/features/sales/presentation/controllers/sales_store.dart';
+import 'package:admin_panel/features/dashboard/presentation/bloc/dashboard_event.dart';
+import 'package:admin_panel/features/dashboard/presentation/bloc/get_dashboard/get_dashboard_bloc.dart';
+import 'package:admin_panel/features/dashboard/presentation/bloc/get_dashboard/get_dashboard_state.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 class DashboardPage extends StatefulWidget {
-  final SalesStore salesStore;
-
-  const DashboardPage({super.key, required this.salesStore});
+  const DashboardPage({super.key});
 
   @override
   State<DashboardPage> createState() => _DashboardPageState();
 }
 
 class _DashboardPageState extends State<DashboardPage> {
-  void _openWorkerDetails(WorkerRow worker) {
-    final workerData = widget.salesStore.getTodayWorkerById(worker.id);
-    if (workerData == null) return;
+  @override
+  void initState() {
+    super.initState();
+    context.read<GetDashboardBloc>().add(GetDashboardE());
+  }
 
-    final rows = workerData.items.map((e) {
-      final hh = e.soldAt.hour.toString().padLeft(2, '0');
-      final mm = e.soldAt.minute.toString().padLeft(2, '0');
-
-      // quantityText dan metr/dona/pachka ajratib beramiz
-      String metr = "-";
-      String dona = "-";
-      String packet = "-";
-
-      final q = e.quantityText.toLowerCase().trim();
-      if (q.contains('metr') || q.contains('m')) {
-        metr = e.quantityText;
-      } else if (q.contains('dona')) {
-        dona = e.quantityText;
-      } else if (q.contains('pachka') || q.contains('packet')) {
-        packet = e.quantityText;
-      }
-
-      return WorkerDta(
-        productName: e.productName,
-        metr: metr,
-        dona: dona,
-        packet: packet,
-        soldPrice: '${e.amountUsd.toStringAsFixed(0)}\$',
-        soldTime: '$hh:$mm',
-        imageAsset: 'assets/details/product.png', // sizdagi default image
-      );
-    }).toList();
-
-    showDialog(
-      context: context,
-      barrierDismissible: true,
-      builder: (_) => WorkerDetailsDialog(worker: worker, rows: rows),
+  void _onWorkerTap(WorkerRow worker) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text("${worker.name} bo‘yicha batafsil ma’lumot API da yo‘q"),
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: widget.salesStore,
-      builder: (context, _) {
-        final todayWorkers = widget.salesStore.todayWorkers;
+    return BlocBuilder<GetDashboardBloc, GetDashboardState>(
+      builder: (context, state) {
+        if (state is GetDashboardLoading) {
+          return const Center(child: CircularProgressIndicator());
+        }
 
-        final workerRows = todayWorkers.map((w) {
-          return WorkerRow(
-            id: w.workerId,
-            name: w.workerName,
-            phone: w.phone,
-            amount: '${w.totalUsd.toStringAsFixed(0)}\$',
-          );
-        }).toList();
+        if (state is GetDashboardError) {
+          return Center(child: Text(state.message));
+        }
 
-        return Padding(
-          padding: const EdgeInsets.all(22),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const SizedBox(height: 18),
-              Expanded(
-                child: SingleChildScrollView(
-                  child: Container(
-                    padding: const EdgeInsets.all(18),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(18),
-                      boxShadow: [
-                        BoxShadow(
-                          blurRadius: 18,
-                          offset: const Offset(0, 10),
-                          color: Colors.black.withOpacity(0.06),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Row(
-                          children: [
-                            const Expanded(
-                              child: Text(
-                                "Bugungi savdosi",
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
-                            ),
-                            SizedBox(
-                              height: 42,
-                              child: ElevatedButton(
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color(0xFF0B74E5),
-                                  foregroundColor: Colors.white,
-                                  shape: const StadiumBorder(),
-                                  elevation: 0,
-                                ),
-                                onPressed: () {
-                                  if (widget.salesStore.todayWorkers.isEmpty) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text("Bugungi savdo bo'sh"),
-                                      ),
-                                    );
-                                    return;
-                                  }
+        if (state is GetDashboardSuccess) {
+          final data = state.dashboardDataEntity;
 
-                                  widget.salesStore.closeToday();
+          final naqd = data.naqd;
+          final terminal = data.terminal;
+          final click = data.click;
 
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text(
-                                        "Bugungi savdo yakunlandi va oylik savdoga o'tdi",
-                                      ),
-                                    ),
-                                  );
-                                },
-                                child: const Padding(
-                                  padding: EdgeInsets.symmetric(horizontal: 16),
-                                  child: Text("Yakunlash"),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        SizedBox(height: 20.h,),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Container(
-                              padding: EdgeInsetsGeometry.only(left: 24,right: 24),
-                              width: 340.w,
-                              height: 45.h,
-                              decoration: BoxDecoration(
-                                color: Color(0xffF2F7FF),
-                                borderRadius: BorderRadiusGeometry.circular(12),
-                              ),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    "Naqt:",
-                                    style: TextStyle(color: Colors.blue),
-                                  ),
-                                  Text(
-                                    "200\$",
-                                    style: TextStyle(color: Colors.blue),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Container(
-                              padding: EdgeInsetsGeometry.only(left: 24,right: 24),
-                              width: 340.w,
-                              height: 45.h,
-                              decoration: BoxDecoration(
-                                color: Color(0xffF2F7FF),
-                                borderRadius: BorderRadiusGeometry.circular(12),
-                              ),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    "Terminal:",
-                                    style: TextStyle(color: Colors.blue),
-                                  ),
-                                  Text(
-                                    "200\$",
-                                    style: TextStyle(color: Colors.blue),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Container(
-                              padding: EdgeInsetsGeometry.only(left: 24,right: 24),
-                              width: 340.w,
-                              height: 45.h,
-                              decoration: BoxDecoration(
-                                color: Color(0xffF2F7FF),
-                                borderRadius: BorderRadiusGeometry.circular(12),
-                              ),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Text(
-                                    "Click:",
-                                    style: TextStyle(color: Colors.blue),
-                                  ),
-                                  Text(
-                                    "200\$",
-                                    style: TextStyle(color: Colors.blue),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 14),
-                        const Divider(height: 1),
-                        const SizedBox(height: 10),
+          final workerRows = data.ishchilar.map<WorkerRow>((w) {
+            return WorkerRow(
+              id: w.ishchiId.toString(),
+              name: w.fish,
+              phone: w.telefon,
+              amount: '${w.jamiSumma}\$',
+            );
+          }).toList();
 
-                        _WorkersTable(
-                          rows: workerRows,
-                          onRowTap: _openWorkerDetails,
-                        ),
-
-                        if (workerRows.isEmpty) ...[
-                          const SizedBox(height: 14),
-                          Container(
-                            padding: const EdgeInsets.all(14),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFF8FAFC),
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: const Color(0xFFE5E7EB),
-                              ),
-                            ),
-                            child: const Text(
-                              "Bugungi savdo hali yo‘q",
-                              textAlign: TextAlign.center,
-                            ),
+          return Padding(
+            padding: const EdgeInsets.all(22),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const SizedBox(height: 18),
+                Expanded(
+                  child: SingleChildScrollView(
+                    child: Container(
+                      padding: const EdgeInsets.all(18),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(18),
+                        boxShadow: [
+                          BoxShadow(
+                            blurRadius: 18,
+                            offset: const Offset(0, 10),
+                            color: Colors.black.withOpacity(0.06),
                           ),
                         ],
-                      ],
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Row(
+                            children: [
+                              const Expanded(
+                                child: Text(
+                                  "Bugungi savdosi",
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ),
+                              SizedBox(
+                                height: 42,
+                                child: ElevatedButton(
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: const Color(0xFF0B74E5),
+                                    foregroundColor: Colors.white,
+                                    shape: const StadiumBorder(),
+                                    elevation: 0,
+                                  ),
+                                  onPressed: () {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                        content: Text(
+                                          "Yakunlash uchun backend API ulanishi kerak",
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                  child: const Padding(
+                                    padding: EdgeInsets.symmetric(horizontal: 16),
+                                    child: Text("Yakunlash"),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+
+                          SizedBox(height: 20.h),
+
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              _moneyCard("Naqt:", "$naqd\$"),
+                              _moneyCard("Terminal:", "$terminal\$"),
+                              _moneyCard("Click:", "$click\$"),
+                            ],
+                          ),
+
+                          const SizedBox(height: 14),
+                          const Divider(height: 1),
+                          const SizedBox(height: 10),
+
+                          _WorkersTable(
+                            rows: workerRows,
+                            onRowTap: _onWorkerTap,
+                          ),
+
+                          if (workerRows.isEmpty) ...[
+                            const SizedBox(height: 14),
+                            Container(
+                              padding: const EdgeInsets.all(14),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFF8FAFC),
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(color: const Color(0xFFE5E7EB)),
+                              ),
+                              child: const Text(
+                                "Bugungi savdo hali yo‘q",
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
                     ),
                   ),
                 ),
-              ),
-            ],
-          ),
-        );
+              ],
+            ),
+          );
+        }
+
+        return const SizedBox();
       },
     );
   }
+}
+
+Widget _moneyCard(String title, String amount) {
+  return Container(
+    padding: const EdgeInsets.only(left: 24, right: 24),
+    width: 340.w,
+    height: 45.h,
+    decoration: BoxDecoration(
+      color: const Color(0xffF2F7FF),
+      borderRadius: BorderRadius.circular(12),
+    ),
+    child: Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(title, style: const TextStyle(color: Colors.blue)),
+        Text(amount, style: const TextStyle(color: Colors.blue)),
+      ],
+    ),
+  );
 }
 
 class WorkerRow {
@@ -281,17 +216,13 @@ class _WorkersTable extends StatelessWidget {
 
     return Column(
       children: [
-        // HEADER
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 12),
           child: Row(
             children: [
               SizedBox(width: 70, child: Text("S/N", style: headerStyle)),
               Expanded(flex: 4, child: Text("Ishchi", style: headerStyle)),
-              Expanded(
-                flex: 3,
-                child: Text("Ishchining nomeri", style: headerStyle),
-              ),
+              Expanded(flex: 3, child: Text("Ishchining nomeri", style: headerStyle)),
               Expanded(
                 flex: 3,
                 child: Align(
@@ -303,8 +234,6 @@ class _WorkersTable extends StatelessWidget {
           ),
         ),
         Divider(height: 1, color: Colors.grey.shade300),
-
-        // ROWS
         ...List.generate(rows.length, (index) {
           final r = rows[index];
           final sn = (index + 1).toString().padLeft(2, '0');

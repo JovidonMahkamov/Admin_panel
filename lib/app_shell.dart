@@ -31,7 +31,7 @@ class _AppShellState extends State<AppShell> {
     salesStore = SalesStore();
     salesStore.seedDemoIfEmpty();
   _pages =  [
-  DashboardPage(salesStore: salesStore),
+  DashboardPage(),
   WorkersPage(),
   ProductPage(),
   CustomerPage(),

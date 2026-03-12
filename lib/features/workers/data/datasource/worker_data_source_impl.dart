@@ -65,7 +65,7 @@ class WorkerDataSourceImpl implements WorkerDataSource {
   @override
   Future<UpdateWorkerResponseModel> updateWorker({required int id, required String fish, required String parol, required String login, required String telefon})async {
     try {
-      final response = await dioClient.patch("${ApiUrls.updateWorker}/$id", data: {"fish": fish, "parol":parol, "telefon": telefon});
+      final response = await dioClient.patch("${ApiUrls.updateWorker}/$id", data: {"fish": fish, "parol":parol, "telefon": telefon, "login": login});
       if (response.statusCode == 200 || response.statusCode == 201) {
         LoggerService.info('statistics successful: ${response.data}');
         return UpdateWorkerResponseModel.fromJson(response.data);

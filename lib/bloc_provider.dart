@@ -1,4 +1,6 @@
 import 'package:admin_panel/core/di/services_locator.dart';
+import 'package:admin_panel/features/dashboard/presentation/bloc/get_dashboard/get_dashboard_bloc.dart';
+import 'package:admin_panel/features/products/presentation/bloc/get_products/get_products_bloc.dart';
 import 'package:admin_panel/features/workers/presentation/bloc/create_worker/create_worker_bloc.dart';
 import 'package:admin_panel/features/workers/presentation/bloc/get_all_worker/get_all_worker_bloc.dart';
 import 'package:flutter/material.dart';
@@ -6,6 +8,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'features/customer/presentation/bloc/create_customer/create_customer_bloc.dart';
 import 'features/customer/presentation/bloc/delete_customer/delete_customer_bloc.dart';
 import 'features/customer/presentation/bloc/get_all_customers/get_all_customers_bloc.dart';
+import 'features/customer/presentation/bloc/update_customer/update_customer_bloc.dart';
 import 'features/workers/presentation/bloc/delete_worker/delete_worker_bloc.dart';
 import 'features/workers/presentation/bloc/update_worker/update_worker_bloc.dart';
 
@@ -25,6 +28,9 @@ class MyBlocProvider extends StatelessWidget {
         BlocProvider<GetAllCustomersBloc>(create: (context) => sl<GetAllCustomersBloc>()),
         BlocProvider<CreateCustomerBloc>(create: (context) => sl<CreateCustomerBloc>()),
         BlocProvider<DeleteCustomerBloc>(create: (context) => sl<DeleteCustomerBloc>()),
+        BlocProvider<UpdateCustomerBloc>(create: (context) => sl<UpdateCustomerBloc>()),
+        BlocProvider<GetDashboardBloc>(create: (context) => sl<GetDashboardBloc>()),
+        BlocProvider<GetProductsBloc>(create: (context) => sl<GetProductsBloc>()),
       ],
       child: child,
     );

@@ -5,11 +5,13 @@ import 'package:admin_panel/features/customer/data/datasource/customer_data_sour
 import 'package:admin_panel/features/customer/data/model/create_customer_response_model.dart';
 import 'package:admin_panel/features/customer/data/model/delete_customer_response_model.dart';
 import 'package:admin_panel/features/customer/data/model/get_all_customers_model.dart';
+import 'package:admin_panel/features/customer/data/model/update_customer_model.dart';
 
 class CustomerDataSourceImpl implements CustomerDataSource {
   final DioClient dioClient = DioClient();
 
   CustomerDataSourceImpl();
+
   @override
   Future<GetAllCustomersModel> getAllCustomers() async {
     try {
@@ -28,7 +30,8 @@ class CustomerDataSourceImpl implements CustomerDataSource {
   }
 
   @override
-  Future<CreateCustomerResponseModel> createCustomer({required String fish, required String manzil, required String telefon})async {
+  Future<CreateCustomerResponseModel> createCustomer(
+      {required String fish, required String manzil, required String telefon}) async {
     try {
       final response = await dioClient.post(ApiUrls.createCustomer);
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -45,7 +48,7 @@ class CustomerDataSourceImpl implements CustomerDataSource {
   }
 
   @override
-  Future<DeleteCustomerResponseModel> deleteCustomer({required int id})async {
+  Future<DeleteCustomerResponseModel> deleteCustomer({required int id}) async {
     try {
       final response = await dioClient.delete("ApiUrls.deleteCustomer/$id");
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -61,4 +64,28 @@ class CustomerDataSourceImpl implements CustomerDataSource {
     }
   }
 
+  @override
+  Future<UpdateCustomerModel> updateCustomer(
+      {required int id, required String fish, required int qarzdorlik, required String manzil, required String telefon}) async {
+    try {
+      final response = await dioClient.patch("${ApiUrls.updateCustomer}/$id",
+          data: {
+            "id": id,
+            "fish": fish,
+            "qarzdorlik": qarzdorlik,
+            "manzil": manzil,
+            "telefon": telefon
+          });
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        LoggerService.info('statistics successful: ${response.data}');
+        return UpdateCustomerModel.fromJson(response.data);
+      } else {
+        LoggerService.warning("statistics failed:${response.statusCode}");
+        throw Exception('statistics failed: ${response.statusCode}');
+      }
+    } catch (e) {
+      LoggerService.error('Error during user statistics: $e');
+      rethrow;
+    }
+  }
 }
