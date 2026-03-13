@@ -1,19 +1,24 @@
-import 'package:admin_panel/features/sales/presentation/controllers/sales_store.dart';
+import 'package:admin_panel/features/monthly_selling/domain/entity/monthly_sales_entity.dart';
+import 'package:admin_panel/features/monthly_selling/presentation/bloc/get_monthly_selling/get_monthly_selling_bloc.dart';
+import 'package:admin_panel/features/monthly_selling/presentation/bloc/get_monthly_selling/get_monthly_selling_state.dart';
+import 'package:admin_panel/features/monthly_selling/presentation/bloc/monthly_selling_event.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class MonthlySellingPage extends StatefulWidget {
-  final SalesStore salesStore;
-
-  const MonthlySellingPage({
-    super.key,
-    required this.salesStore,
-  });
+  const MonthlySellingPage({super.key});
 
   @override
   State<MonthlySellingPage> createState() => _MonthlySellingPageState();
 }
 
 class _MonthlySellingPageState extends State<MonthlySellingPage> {
+  @override
+  void initState() {
+    super.initState();
+    context.read<GetMonthlySellingBloc>().add(const MonthlySellingE());
+  }
+
   String _formatDateMMDDYYYY(DateTime date) {
     final mm = date.month.toString().padLeft(2, '0');
     final dd = date.day.toString().padLeft(2, '0');
@@ -21,113 +26,301 @@ class _MonthlySellingPageState extends State<MonthlySellingPage> {
     return '$mm.$dd.$yyyy';
   }
 
-  String _formatMoney(double value) {
-    return '${value.toStringAsFixed(0)}\$';
+  String _formatMoney(num value) {
+    return '${value.toString()}\$';
   }
 
-  String get _totalAmount {
-    final days = widget.salesStore.closedDays;
-    final total = days.fold<double>(0, (sum, d) => sum + d.totalUsd);
-    return _formatMoney(total);
+  DateTime _parseDate(String raw) {
+    try {
+      return DateTime.parse(raw);
+    } catch (_) {
+      return DateTime.now();
+    }
+  }
+
+  List<ClosedDaySale> _mapMonthlyData(MonthlySalesEntity entity) {
+    final Map<String, List<MonthlySaleEntity>> groupedByDay = {};
+
+    for (final sale in entity.data.sotuvlar) {
+      final date = _parseDate(sale.sana);
+      final key =
+          '${date.year}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
+
+      groupedByDay.putIfAbsent(key, () => []);
+      groupedByDay[key]!.add(sale);
+    }
+
+    final List<ClosedDaySale> result = [];
+
+    groupedByDay.forEach((key, salesOfDay) {
+      final dayDate = _parseDate(salesOfDay.first.sana);
+
+      final Map<int, List<MonthlySaleEntity>> groupedByWorker = {};
+      for (final sale in salesOfDay) {
+        groupedByWorker.putIfAbsent(sale.ishchiId, () => []);
+        groupedByWorker[sale.ishchiId]!.add(sale);
+      }
+
+      final List<WorkerDailySales> workers = [];
+
+      groupedByWorker.forEach((workerId, workerSales) {
+        final first = workerSales.first;
+
+        final List<ClosedWorkerSaleItem> workerItems = [];
+        int workerTotal = 0;
+
+        for (final sale in workerSales) {
+          workerTotal += sale.jamiSumma;
+
+          for (final item in sale.items) {
+            workerItems.add(
+              ClosedWorkerSaleItem(
+                productName: item.tovarNomi,
+                quantityText: _buildQuantityText(item),
+                amountUsd: item.jami,
+                soldAt: _parseDate(sale.sana),
+              ),
+            );
+          }
+        }
+
+        workers.add(
+          WorkerDailySales(
+            workerId: first.ishchiId,
+            workerName: first.ishchiFish,
+            phone: '',
+            totalUsd: workerTotal.toDouble(),
+            items: workerItems,
+          ),
+        );
+      });
+
+      final totalDayAmount = salesOfDay.fold<int>(
+        0,
+            (sum, e) => sum + e.jamiSumma,
+      );
+
+      workers.sort((a, b) => b.totalUsd.compareTo(a.totalUsd));
+
+      result.add(
+        ClosedDaySale(
+          date: dayDate,
+          totalUsd: totalDayAmount.toDouble(),
+          workers: workers,
+        ),
+      );
+    });
+
+    result.sort((a, b) => b.date.compareTo(a.date));
+    return result;
+  }
+
+  String _buildQuantityText(MonthlySaleItemEntity item) {
+    final parts = <String>[];
+
+    if (item.miqdor > 0) parts.add('dona: ${item.miqdor}');
+    if (item.pochka > 0) parts.add('pochka: ${item.pochka}');
+    if (item.metr > 0) parts.add('metr: ${item.metr}');
+
+    if (parts.isEmpty) return '-';
+    return parts.join(' | ');
   }
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: widget.salesStore,
-      builder: (context, _) {
-        final days = widget.salesStore.closedDays;
+    return BlocBuilder<GetMonthlySellingBloc, GetMonthlySellingState>(
+      builder: (context, state) {
+        if (state is GetMonthlySellingLoading) {
+          return const Center(
+            child: CircularProgressIndicator(),
+          );
+        }
 
-        return Padding(
-          padding: const EdgeInsets.all(22),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const SizedBox(height: 18),
-              Expanded(
-                child: SingleChildScrollView(
-                  child: Container(
-                    padding: const EdgeInsets.all(18),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(18),
-                      boxShadow: [
-                        BoxShadow(
-                          blurRadius: 18,
-                          offset: const Offset(0, 10),
-                          color: Colors.black.withOpacity(0.06),
-                        ),
-                      ],
+        if (state is GetMonthlySellingError) {
+          return Center(
+            child: Container(
+              constraints: const BoxConstraints(maxWidth: 460),
+              margin: const EdgeInsets.all(24),
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(18),
+                boxShadow: [
+                  BoxShadow(
+                    blurRadius: 18,
+                    offset: const Offset(0, 10),
+                    color: Colors.black.withOpacity(0.06),
+                  ),
+                ],
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(
+                    Icons.error_outline,
+                    size: 44,
+                    color: Colors.red,
+                  ),
+                  const SizedBox(height: 12),
+                  const Text(
+                    "Xatolik yuz berdi",
+                    style: TextStyle(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 18,
                     ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        // TOP ROW (faqat title)
-                        const Row(
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    state.message,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Colors.grey.shade700),
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () {
+                      context
+                          .read<GetMonthlySellingBloc>()
+                          .add(const MonthlySellingE());
+                    },
+                    child: const Text("Qayta urinish"),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+
+        if (state is GetMonthlySellingSuccess) {
+          final monthlyEntity = state.monthlySalesEntity;
+          final days = _mapMonthlyData(monthlyEntity);
+          final totalAmount = _formatMoney(monthlyEntity.data.jamiSumma);
+          final monthLabel =
+              "${monthlyEntity.data.oy.toString().padLeft(2, '0')}.${monthlyEntity.data.yil}";
+
+          return Padding(
+            padding: const EdgeInsets.all(22),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const SizedBox(height: 18),
+                Expanded(
+                  child: RefreshIndicator(
+                    onRefresh: () async {
+                      context
+                          .read<GetMonthlySellingBloc>()
+                          .add(const MonthlySellingE());
+                    },
+                    child: SingleChildScrollView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      child: Container(
+                        padding: const EdgeInsets.all(18),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(18),
+                          boxShadow: [
+                            BoxShadow(
+                              blurRadius: 18,
+                              offset: const Offset(0, 10),
+                              color: Colors.black.withOpacity(0.06),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            Expanded(
+                            Row(
+                              children: [
+                                const Expanded(
+                                  child: Text(
+                                    "Oylik savdo",
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                ),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 14,
+                                    vertical: 10,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFEAF4FF),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Text(
+                                    monthLabel,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w700,
+                                      color: Color(0xFF0B74E5),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 14),
+                            const Divider(height: 1),
+                            const SizedBox(height: 10),
+                            _MonthlyDailyTable(
+                              days: days,
+                              formatDate: _formatDateMMDDYYYY,
+                              formatMoney: _formatMoney,
+                              onRowTap: (day) =>
+                                  _showDayWorkersDialog(context, day),
+                            ),
+                            const SizedBox(height: 18),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 18,
+                                vertical: 16,
+                              ),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFEAF4FF),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Row(
+                                children: [
+                                  const Text(
+                                    "Umumiy summa:",
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w700,
+                                      color: Color(0xFF0B74E5),
+                                    ),
+                                  ),
+                                  const Spacer(),
+                                  Text(
+                                    totalAmount,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w800,
+                                      color: Color(0xFF0B74E5),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                            Align(
+                              alignment: Alignment.centerRight,
                               child: Text(
-                                "Oylik savdo",
+                                "Sotuvlar soni: ${monthlyEntity.data.sotuvlarSoni}",
                                 style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w700,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.grey.shade700,
                                 ),
                               ),
                             ),
                           ],
                         ),
-
-                        const SizedBox(height: 14),
-                        const Divider(height: 1),
-                        const SizedBox(height: 10),
-
-                        _MonthlyDailyTable(
-                          days: days,
-                          formatDate: _formatDateMMDDYYYY,
-                          formatMoney: _formatMoney,
-                          onRowTap: (day) => _showDayWorkersDialog(context, day),
-                        ),
-
-                        const SizedBox(height: 18),
-
-                        // TOTAL CARD
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 18,
-                            vertical: 16,
-                          ),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFEAF4FF),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Row(
-                            children: [
-                              const Text(
-                                "Umumiy summa:",
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w700,
-                                  color: Color(0xFF0B74E5),
-                                ),
-                              ),
-                              const Spacer(),
-                              Text(
-                                _totalAmount,
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.w800,
-                                  color: Color(0xFF0B74E5),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
                   ),
                 ),
-              ),
-            ],
-          ),
-        );
+              ],
+            ),
+          );
+        }
+
+        return const SizedBox();
       },
     );
   }
@@ -211,7 +404,7 @@ class _MonthlySellingPageState extends State<MonthlySellingPage> {
                                     ),
                                     Expanded(
                                       flex: 3,
-                                      child: Text(w.phone),
+                                      child: Text(w.phone.isEmpty ? "-" : w.phone),
                                     ),
                                     Expanded(
                                       flex: 2,
@@ -281,7 +474,7 @@ class _MonthlySellingPageState extends State<MonthlySellingPage> {
                     ),
                   ),
                   const SizedBox(height: 4),
-                  Text(worker.phone),
+                  Text(worker.phone.isEmpty ? "-" : worker.phone),
                   const SizedBox(height: 4),
                   Text(
                     "Sana: ${_formatDateMMDDYYYY(day.date)}",
@@ -290,7 +483,6 @@ class _MonthlySellingPageState extends State<MonthlySellingPage> {
                   const SizedBox(height: 12),
                   const Divider(height: 1),
                   const SizedBox(height: 8),
-
                   if (worker.items.isEmpty)
                     const Padding(
                       padding: EdgeInsets.symmetric(vertical: 16),
@@ -317,7 +509,7 @@ class _MonthlySellingPageState extends State<MonthlySellingPage> {
                                   child: Text('$hh:$mm'),
                                 ),
                                 Expanded(
-                                  flex: 2,
+                                  flex: 3,
                                   child: Text(e.quantityText),
                                 ),
                                 Expanded(
@@ -338,7 +530,6 @@ class _MonthlySellingPageState extends State<MonthlySellingPage> {
                         },
                       ),
                     ),
-
                   const SizedBox(height: 12),
                   Align(
                     alignment: Alignment.centerRight,
@@ -360,12 +551,52 @@ class _MonthlySellingPageState extends State<MonthlySellingPage> {
   }
 }
 
-// ===================== TABLE (kunlar bo'yicha) =====================
+class ClosedDaySale {
+  final DateTime date;
+  final double totalUsd;
+  final List<WorkerDailySales> workers;
+
+  const ClosedDaySale({
+    required this.date,
+    required this.totalUsd,
+    required this.workers,
+  });
+}
+
+class WorkerDailySales {
+  final int workerId;
+  final String workerName;
+  final String phone;
+  final double totalUsd;
+  final List<ClosedWorkerSaleItem> items;
+
+  const WorkerDailySales({
+    required this.workerId,
+    required this.workerName,
+    required this.phone,
+    required this.totalUsd,
+    required this.items,
+  });
+}
+
+class ClosedWorkerSaleItem {
+  final String productName;
+  final String quantityText;
+  final int amountUsd;
+  final DateTime soldAt;
+
+  const ClosedWorkerSaleItem({
+    required this.productName,
+    required this.quantityText,
+    required this.amountUsd,
+    required this.soldAt,
+  });
+}
 
 class _MonthlyDailyTable extends StatelessWidget {
   final List<ClosedDaySale> days;
   final String Function(DateTime) formatDate;
-  final String Function(double) formatMoney;
+  final String Function(num) formatMoney;
   final ValueChanged<ClosedDaySale> onRowTap;
 
   const _MonthlyDailyTable({
@@ -405,7 +636,7 @@ class _MonthlyDailyTable extends StatelessWidget {
           const Padding(
             padding: EdgeInsets.symmetric(vertical: 24),
             child: Center(
-              child: Text("Hali yakunlangan kunlik savdolar yo‘q"),
+              child: Text("Hali oylik savdolar yo‘q"),
             ),
           ),
         ],
@@ -431,7 +662,6 @@ class _MonthlyDailyTable extends StatelessWidget {
           ),
         ),
         Divider(height: 1, color: Colors.grey.shade300),
-
         ...List.generate(days.length, (index) {
           final d = days[index];
           final sn = (index + 1).toString().padLeft(2, '0');

@@ -12,7 +12,7 @@ class DioClient {
       baseUrl: ApiUrls.baseUrl,
       connectTimeout: const Duration(seconds: 30),
       receiveTimeout: const Duration(seconds: 30),
-      headers: {'Content-Type': 'application/json'},
+      headers: {'Accept': 'application/json'},
     ),
   ) {
     _dio.interceptors.add(

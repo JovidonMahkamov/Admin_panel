@@ -15,7 +15,23 @@ abstract class ApiUrls {
 
   ///Dashboard
   static const String getDashboard = '/sotuv/bugun';
+  static const String finishSales = '/sotuv/yakunlash';
+  static const String workerDeail = '/sotuv/oylik/kun/ishchi';
 
   ///Tovar
   static const String getProducts = '/tovar/';
+  static const String createProduct = '/tovar/';
+  static const String delete = '/tovar/';
+
+  ///Oylik Savdo
+  static const String getMonthlySelling = '/tarix/oylik';
+
+  ///Tarix
+  static const String getHistory = '/tarix/';
+
+  ///Harajat
+  static const String getHarajat = '/xarajat/harajat';
+  static const String postHarajat = '/xarajat/harajat';
+
+
 }

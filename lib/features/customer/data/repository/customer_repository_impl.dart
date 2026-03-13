@@ -8,17 +8,18 @@ import '../../domain/entity/delete_customer_response_entity.dart';
 class CustomerRepositoryImpl implements CustomerRepositories {
   final CustomerDataSource remote;
 
-  CustomerRepositoryImpl({
-    required this.remote,
-  });
+  CustomerRepositoryImpl({required this.remote});
 
   @override
   Future<GetAllCustomersEntity> getAllCustomers() => remote.getAllCustomers();
 
   @override
-  Future<CreateCustomerResponseEntity> createCustomer({required String fish, required String manzil, required String telefon}) {
+  Future<CreateCustomerResponseEntity> createCustomer({
+    required String fish,
+    required String manzil,
+    required String telefon,
+  }) {
     return remote.createCustomer(fish: fish, manzil: manzil, telefon: telefon);
-
   }
 
   @override
@@ -27,8 +28,19 @@ class CustomerRepositoryImpl implements CustomerRepositories {
   }
 
   @override
-  Future<UpdateCustomerEntity> updateCustomer({required int id, required String fish, required String manzil, required int qarzdorlik, required String telefon}) {
-   return remote.updateCustomer(id: id, fish: fish, qarzdorlik: qarzdorlik, manzil: manzil, telefon: telefon);
+  Future<UpdateCustomerEntity> updateCustomer({
+    required int id,
+    required String fish,
+    required String manzil,
+    required int qarzdorlik,
+    required String telefon,
+  }) {
+    return remote.updateCustomer(
+      id: id,
+      fish: fish,
+      qarzdorlik: qarzdorlik,
+      manzil: manzil,
+      telefon: telefon,
+    );
   }
-
 }

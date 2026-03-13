@@ -1,4 +1,10 @@
 import 'package:admin_panel/core/networks/dio_client.dart';
+import 'package:admin_panel/features/cost/data/datasource/cost_data_source.dart';
+import 'package:admin_panel/features/cost/data/datasource/cost_data_source_impl.dart';
+import 'package:admin_panel/features/cost/data/repository/cost_repo_impl.dart';
+import 'package:admin_panel/features/cost/domain/repository/cost_repo.dart';
+import 'package:admin_panel/features/cost/domain/usecase/get_harajat_use_case.dart';
+import 'package:admin_panel/features/cost/presentation/bloc/get_harajat/get_harajat_bloc.dart';
 import 'package:admin_panel/features/customer/data/datasource/customer_data_source.dart';
 import 'package:admin_panel/features/customer/data/datasource/customer_data_source_impl.dart';
 import 'package:admin_panel/features/customer/data/repository/customer_repository_impl.dart';
@@ -15,13 +21,32 @@ import 'package:admin_panel/features/dashboard/data/datasource/dashboard_data_so
 import 'package:admin_panel/features/dashboard/data/datasource/dashboard_data_source_impl.dart';
 import 'package:admin_panel/features/dashboard/data/repository/dashboard_repository_impl.dart';
 import 'package:admin_panel/features/dashboard/domain/repository/dashboard_repositories.dart';
+import 'package:admin_panel/features/dashboard/domain/usecase/finish_sales_use_case.dart';
 import 'package:admin_panel/features/dashboard/domain/usecase/get_dashboard_use_case.dart';
+import 'package:admin_panel/features/dashboard/domain/usecase/worker_detail_use_case.dart';
+import 'package:admin_panel/features/dashboard/presentation/bloc/finish_sales/finish_sales_bloc.dart';
 import 'package:admin_panel/features/dashboard/presentation/bloc/get_dashboard/get_dashboard_bloc.dart';
+import 'package:admin_panel/features/dashboard/presentation/bloc/worker_detail/worker_detail_bloc.dart';
+import 'package:admin_panel/features/history/data/datasource/history_data_source.dart';
+import 'package:admin_panel/features/history/data/datasource/history_data_source_impl.dart';
+import 'package:admin_panel/features/history/data/repository/history_repo_impl.dart';
+import 'package:admin_panel/features/history/domain/repository/history_repo.dart';
+import 'package:admin_panel/features/history/domain/usecase/history_use_case.dart';
+import 'package:admin_panel/features/history/presentation/bloc/get_history/get_history_bloc.dart';
+import 'package:admin_panel/features/monthly_selling/data/datasource/monthly_selling_data_source.dart';
+import 'package:admin_panel/features/monthly_selling/data/datasource/monthly_selling_data_source_impl.dart';
+import 'package:admin_panel/features/monthly_selling/data/repository/monthly_selling_repository_impl.dart';
+import 'package:admin_panel/features/monthly_selling/domain/repository/monthly_selling_repositories.dart';
+import 'package:admin_panel/features/monthly_selling/domain/usecase/get_monthly_selling_use_case.dart';
 import 'package:admin_panel/features/products/data/datasource/product_data_source.dart';
 import 'package:admin_panel/features/products/data/datasource/product_data_source_impl.dart';
 import 'package:admin_panel/features/products/data/repository/product_repository_impl.dart';
 import 'package:admin_panel/features/products/domain/repository/product_repositories.dart';
+import 'package:admin_panel/features/products/domain/usecase/create_product_use_case.dart';
+import 'package:admin_panel/features/products/domain/usecase/delete_product_usecase.dart';
 import 'package:admin_panel/features/products/domain/usecase/get_products_use_case.dart';
+import 'package:admin_panel/features/products/presentation/bloc/create_product/create_product_bloc.dart';
+import 'package:admin_panel/features/products/presentation/bloc/delete_product/delete_product_bloc.dart';
 import 'package:admin_panel/features/products/presentation/bloc/get_products/get_products_bloc.dart';
 import 'package:admin_panel/features/workers/data/datasource/worker_data_source.dart';
 import 'package:admin_panel/features/workers/data/datasource/worker_data_source_impl.dart';
@@ -37,6 +62,8 @@ import 'package:admin_panel/features/workers/presentation/bloc/get_all_worker/ge
 import 'package:admin_panel/features/workers/presentation/bloc/update_worker/update_worker_bloc.dart';
 import 'package:dio/dio.dart';
 import 'package:get_it/get_it.dart';
+
+import '../../features/monthly_selling/presentation/bloc/get_monthly_selling/get_monthly_selling_bloc.dart';
 
 final sl = GetIt.instance;
 
@@ -63,7 +90,18 @@ Future<void> setup() async {
   sl.registerLazySingleton<ProductDataSource>(
         () => ProductDataSourceImpl(),
   );
-
+  ///* Oylik Savdo
+  sl.registerLazySingleton<MonthlySellingDataSource>(
+        () => MonthlySellingDataSourceImpl(),
+  );
+  ///*Tarix
+  sl.registerLazySingleton<HistoryDataSource>(
+        () => HistoryDataSourceImpl(),
+  );
+  ///*Harajat
+  sl.registerLazySingleton<CostDataSource>(
+        () => CostDataSourceImpl(),
+  );
   ///! Repository
   ///* Worker
   sl.registerLazySingleton<WorkerRepositories>(
@@ -81,6 +119,18 @@ Future<void> setup() async {
   sl.registerLazySingleton<ProductRepositories>(
         () => ProductRepositoryImpl(  remote: sl(),),
   );
+  ///* Oylik Savdo
+  sl.registerLazySingleton<MonthlySellingRepositories>(
+        () => MonthlySellingRepositoryImpl(  remote: sl(),),
+  );
+  ///*Tarix
+  sl.registerLazySingleton<HistoryRepo>(
+        () => HistoryRepoImpl(remote: sl(),),
+  );
+  ///*Harajat
+  sl.registerLazySingleton<CostRepo>(
+        () => CostRepoImpl(remote: sl(),),
+  );
   ///! UseCase
   ///*Worker
   sl.registerLazySingleton(()=>GetAllWorkersUseCase(sl()));
@@ -96,9 +146,23 @@ Future<void> setup() async {
 
   ///*Dashboard
   sl.registerLazySingleton(()=>GetDashboardUseCase(sl()));
+  sl.registerLazySingleton(()=>FinishSalesUseCase(sl()));
+  sl.registerLazySingleton(()=>WorkerDetailUseCase(sl()));
 
   ///*Products
   sl.registerLazySingleton(()=>GetProductUseCase(sl()));
+  sl.registerLazySingleton(()=>CreateProductUseCase(sl()));
+  sl.registerLazySingleton(()=>DeleteProductUseCase(sl()));
+
+  ///*Oylik Savdo
+  sl.registerLazySingleton(()=>GetMonthlySellingUseCase(sl()));
+
+  ///*Tarix
+  sl.registerLazySingleton(()=>HistoryUseCase(sl()));
+  ///*Harajat
+  sl.registerLazySingleton(()=>GetHarajatUseCase(sl()));
+
+
 
   ///! Bloc
   ///* Worker
@@ -115,9 +179,21 @@ Future<void> setup() async {
 
   ///* Dashboard
   sl.registerLazySingleton(()=> GetDashboardBloc(sl()));
+  sl.registerLazySingleton(()=> FinishSalesBloc(sl()));
+  sl.registerLazySingleton(()=> WorkerDetailBloc(sl()));
 
   ///* Products
   sl.registerLazySingleton(()=> GetProductsBloc(sl()));
+  sl.registerLazySingleton(()=> CreateProductBloc(sl()));
+  sl.registerLazySingleton(()=> DeleteProductBloc(sl()));
+
+  ///* Oylik Savdo
+  sl.registerLazySingleton(()=> GetMonthlySellingBloc(sl()));
+
+  ///* Tarix
+  sl.registerLazySingleton(()=> GetHistoryBloc(sl()));
+  ///* Harajat
+  sl.registerLazySingleton(()=> GetHarajatBloc(sl()));
 }
 
 

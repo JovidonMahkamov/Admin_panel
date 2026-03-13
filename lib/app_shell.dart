@@ -1,5 +1,3 @@
-
-
 import 'package:admin_panel/features/cost/presentation/pages/cost_page.dart';
 import 'package:admin_panel/features/history/presentation/pages/history_page.dart';
 import 'package:admin_panel/features/monthly_selling/presentation/pages/monthly_selling_page.dart';
@@ -10,7 +8,6 @@ import 'package:flutter/material.dart';
 import 'features/customer/presentation/pages/customer_page.dart';
 import 'features/dashboard/presentation/pages/deshboard_page.dart';
 import 'features/products/presentation/pages/product_page.dart';
-import 'features/sales/presentation/controllers/sales_store.dart';
 import 'features/workers/presentation/pages/workers_page.dart';
 
 class AppShell extends StatefulWidget {
@@ -21,25 +18,23 @@ class AppShell extends StatefulWidget {
 }
 
 class _AppShellState extends State<AppShell> {
-  late final SalesStore salesStore;
   int _selectedIndex = 0;
 
   late final List<Widget> _pages;
+
   @override
   void initState() {
     super.initState();
-    salesStore = SalesStore();
-    salesStore.seedDemoIfEmpty();
-  _pages =  [
-  DashboardPage(),
-  WorkersPage(),
-  ProductPage(),
-  CustomerPage(),
-  MonthlySellingPage(salesStore: salesStore),
-  HistoryPage(),
-  ProfilePage(),
-  CostPage()
-  ];
+    _pages = [
+      const DashboardPage(),
+      const WorkersPage(),
+      const ProductPage(),
+      const CustomerPage(),
+      const MonthlySellingPage(),
+      const HistoryPage(),
+      const ProfilePage(),
+      const CostPage(),
+    ];
   }
 
   @override
@@ -49,7 +44,6 @@ class _AppShellState extends State<AppShell> {
         final isWide = c.maxWidth >= 900;
 
         if (!isWide) {
-          // Tor window -> Drawer
           return Scaffold(
             appBar: AppBar(
               title: const Text('StockFlow Admin'),
@@ -69,7 +63,6 @@ class _AppShellState extends State<AppShell> {
           );
         }
 
-        // Keng window -> Sidebar doim ko‘rinadi
         return Scaffold(
           body: Row(
             children: [
