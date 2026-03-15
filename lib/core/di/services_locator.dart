@@ -3,8 +3,21 @@ import 'package:admin_panel/features/cost/data/datasource/cost_data_source.dart'
 import 'package:admin_panel/features/cost/data/datasource/cost_data_source_impl.dart';
 import 'package:admin_panel/features/cost/data/repository/cost_repo_impl.dart';
 import 'package:admin_panel/features/cost/domain/repository/cost_repo.dart';
+import 'package:admin_panel/features/cost/domain/usecase/delete_harajat_use_case.dart';
+import 'package:admin_panel/features/cost/domain/usecase/delete_kassa_use_case.dart';
 import 'package:admin_panel/features/cost/domain/usecase/get_harajat_use_case.dart';
+import 'package:admin_panel/features/cost/domain/usecase/get_kassa_use_case.dart';
+import 'package:admin_panel/features/cost/domain/usecase/post_kassa_use_case.dart';
+import 'package:admin_panel/features/cost/domain/usecase/update_harajat_use_case.dart';
+import 'package:admin_panel/features/cost/domain/usecase/update_kassa_use_case.dart';
+import 'package:admin_panel/features/cost/presentation/bloc/delete_harajat/delete_harajat_bloc.dart';
+import 'package:admin_panel/features/cost/presentation/bloc/delete_kassa/delete_kassa_bloc.dart';
 import 'package:admin_panel/features/cost/presentation/bloc/get_harajat/get_harajat_bloc.dart';
+import 'package:admin_panel/features/cost/presentation/bloc/get_kassa/get_kassa_bloc.dart';
+import 'package:admin_panel/features/cost/presentation/bloc/post_harajat/post_harajat_bloc.dart';
+import 'package:admin_panel/features/cost/presentation/bloc/post_kassa/post_kassa_bloc.dart';
+import 'package:admin_panel/features/cost/presentation/bloc/update_harajat/update_harajat_bloc.dart';
+import 'package:admin_panel/features/cost/presentation/bloc/update_kassa/update_kassa_bloc.dart';
 import 'package:admin_panel/features/customer/data/datasource/customer_data_source.dart';
 import 'package:admin_panel/features/customer/data/datasource/customer_data_source_impl.dart';
 import 'package:admin_panel/features/customer/data/repository/customer_repository_impl.dart';
@@ -37,7 +50,9 @@ import 'package:admin_panel/features/monthly_selling/data/datasource/monthly_sel
 import 'package:admin_panel/features/monthly_selling/data/datasource/monthly_selling_data_source_impl.dart';
 import 'package:admin_panel/features/monthly_selling/data/repository/monthly_selling_repository_impl.dart';
 import 'package:admin_panel/features/monthly_selling/domain/repository/monthly_selling_repositories.dart';
+import 'package:admin_panel/features/monthly_selling/domain/usecase/finish_monthly_sales_use_case.dart';
 import 'package:admin_panel/features/monthly_selling/domain/usecase/get_monthly_selling_use_case.dart';
+import 'package:admin_panel/features/monthly_selling/presentation/bloc/finish_monthly_selling/finish_monthly_selling_bloc.dart';
 import 'package:admin_panel/features/products/data/datasource/product_data_source.dart';
 import 'package:admin_panel/features/products/data/datasource/product_data_source_impl.dart';
 import 'package:admin_panel/features/products/data/repository/product_repository_impl.dart';
@@ -45,6 +60,7 @@ import 'package:admin_panel/features/products/domain/repository/product_reposito
 import 'package:admin_panel/features/products/domain/usecase/create_product_use_case.dart';
 import 'package:admin_panel/features/products/domain/usecase/delete_product_usecase.dart';
 import 'package:admin_panel/features/products/domain/usecase/get_products_use_case.dart';
+import 'package:admin_panel/features/products/domain/usecase/update_product_use_case.dart';
 import 'package:admin_panel/features/products/presentation/bloc/create_product/create_product_bloc.dart';
 import 'package:admin_panel/features/products/presentation/bloc/delete_product/delete_product_bloc.dart';
 import 'package:admin_panel/features/products/presentation/bloc/get_products/get_products_bloc.dart';
@@ -62,8 +78,9 @@ import 'package:admin_panel/features/workers/presentation/bloc/get_all_worker/ge
 import 'package:admin_panel/features/workers/presentation/bloc/update_worker/update_worker_bloc.dart';
 import 'package:dio/dio.dart';
 import 'package:get_it/get_it.dart';
-
+import '../../features/cost/domain/usecase/post_harajat_use_case.dart';
 import '../../features/monthly_selling/presentation/bloc/get_monthly_selling/get_monthly_selling_bloc.dart';
+import '../../features/products/presentation/bloc/update_product/update_product_bloc.dart';
 
 final sl = GetIt.instance;
 
@@ -153,15 +170,24 @@ Future<void> setup() async {
   sl.registerLazySingleton(()=>GetProductUseCase(sl()));
   sl.registerLazySingleton(()=>CreateProductUseCase(sl()));
   sl.registerLazySingleton(()=>DeleteProductUseCase(sl()));
+  sl.registerLazySingleton(()=>UpdateProductUseCase(sl()));
 
   ///*Oylik Savdo
   sl.registerLazySingleton(()=>GetMonthlySellingUseCase(sl()));
+  sl.registerLazySingleton(()=>FinishMonthlySalesUseCase(sl()));
 
   ///*Tarix
   sl.registerLazySingleton(()=>HistoryUseCase(sl()));
   ///*Harajat
   sl.registerLazySingleton(()=>GetHarajatUseCase(sl()));
-
+  sl.registerLazySingleton(()=>PostHarajatUseCase(sl()));
+  sl.registerLazySingleton(()=>DeleteHarajatUseCase(sl()));
+  sl.registerLazySingleton(()=>UpdateHarajatUseCase(sl()));
+  ///*Kassa
+  sl.registerLazySingleton(()=>GetKassaUseCase(sl()));
+  sl.registerLazySingleton(()=>PostKassaUseCase(sl()));
+  sl.registerLazySingleton(()=>DeleteKassaUseCase(sl()));
+  sl.registerLazySingleton(()=>UpdateKassaUseCase(sl()));
 
 
   ///! Bloc
@@ -186,14 +212,25 @@ Future<void> setup() async {
   sl.registerLazySingleton(()=> GetProductsBloc(sl()));
   sl.registerLazySingleton(()=> CreateProductBloc(sl()));
   sl.registerLazySingleton(()=> DeleteProductBloc(sl()));
+  sl.registerLazySingleton(()=> UpdateProductBloc(sl()));
 
   ///* Oylik Savdo
   sl.registerLazySingleton(()=> GetMonthlySellingBloc(sl()));
+  sl.registerLazySingleton(()=> FinishMonthlySellingBloc(sl()));
 
   ///* Tarix
   sl.registerLazySingleton(()=> GetHistoryBloc(sl()));
   ///* Harajat
   sl.registerLazySingleton(()=> GetHarajatBloc(sl()));
+  sl.registerLazySingleton(()=> PostCostBloc(sl()));
+  sl.registerLazySingleton(()=> DeleteHarajatBloc(sl()));
+  sl.registerLazySingleton(()=> UpdateHarajatBloc(sl()));
+
+  ///* Kassa
+  sl.registerLazySingleton(()=> GetKassaBloc(sl()));
+  sl.registerLazySingleton(()=> PostKassaBloc(sl()));
+  sl.registerLazySingleton(()=> DeleteKassaBloc(sl()));
+  sl.registerLazySingleton(()=> UpdateKassaBloc(sl()));
 }
 
 

@@ -22,9 +22,11 @@ abstract class ApiUrls {
   static const String getProducts = '/tovar/';
   static const String createProduct = '/tovar/';
   static const String delete = '/tovar/';
+  static const String updateProduct = '/tovar/';
 
   ///Oylik Savdo
   static const String getMonthlySelling = '/tarix/oylik';
+  static const String finishMonthlySelling = '/sotuv/oylik/yakunlash';
 
   ///Tarix
   static const String getHistory = '/tarix/';
@@ -32,6 +34,12 @@ abstract class ApiUrls {
   ///Harajat
   static const String getHarajat = '/xarajat/harajat';
   static const String postHarajat = '/xarajat/harajat';
+  static const String deleteHarajat = '/xarajat/harajat/';
+  static const String updateHarajat = '/xarajat/harajat/';
 
-
+  ///Kassa Harajat
+  static const String getKassa = '/xarajat/kassa';
+  static const String postKassa = '/xarajat/kassa';
+  static const String deleteKassa = '/xarajat/kassa/';
+  static const String updateKassa = '/xarajat/kassa/';
 }

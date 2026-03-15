@@ -1,9 +1,12 @@
+import 'package:admin_panel/features/dashboard/presentation/widgets/elvated_button_wg.dart';
 import 'package:admin_panel/features/monthly_selling/domain/entity/monthly_sales_entity.dart';
 import 'package:admin_panel/features/monthly_selling/presentation/bloc/get_monthly_selling/get_monthly_selling_bloc.dart';
 import 'package:admin_panel/features/monthly_selling/presentation/bloc/get_monthly_selling/get_monthly_selling_state.dart';
 import 'package:admin_panel/features/monthly_selling/presentation/bloc/monthly_selling_event.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../bloc/finish_monthly_selling/finish_monthly_selling_bloc.dart';
+import '../bloc/finish_monthly_selling/finish_monthly_selling_state.dart';
 
 class MonthlySellingPage extends StatefulWidget {
   const MonthlySellingPage({super.key});
@@ -128,200 +131,263 @@ class _MonthlySellingPageState extends State<MonthlySellingPage> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<GetMonthlySellingBloc, GetMonthlySellingState>(
-      builder: (context, state) {
-        if (state is GetMonthlySellingLoading) {
-          return const Center(
-            child: CircularProgressIndicator(),
+    return BlocListener<FinishMonthlySellingBloc, FinishMonthlySellingState>(
+      listener: (context, finishState) {
+        if (finishState is FinishMonthlySellingSuccess) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(finishState.finishMonthlySalesEntity.message),
+            ),
           );
+
+          context.read<GetMonthlySellingBloc>().add(const MonthlySellingE());
         }
 
-        if (state is GetMonthlySellingError) {
-          return Center(
-            child: Container(
-              constraints: const BoxConstraints(maxWidth: 460),
-              margin: const EdgeInsets.all(24),
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(18),
-                boxShadow: [
-                  BoxShadow(
-                    blurRadius: 18,
-                    offset: const Offset(0, 10),
-                    color: Colors.black.withOpacity(0.06),
-                  ),
-                ],
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(
-                    Icons.error_outline,
-                    size: 44,
-                    color: Colors.red,
-                  ),
-                  const SizedBox(height: 12),
-                  const Text(
-                    "Xatolik yuz berdi",
-                    style: TextStyle(
-                      fontWeight: FontWeight.w700,
-                      fontSize: 18,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    state.message,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(color: Colors.grey.shade700),
-                  ),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: () {
-                      context
-                          .read<GetMonthlySellingBloc>()
-                          .add(const MonthlySellingE());
-                    },
-                    child: const Text("Qayta urinish"),
-                  ),
-                ],
-              ),
+        if (finishState is FinishMonthlySellingError) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(finishState.message),
+              backgroundColor: Colors.red,
             ),
           );
         }
+      },
+      child: BlocBuilder<GetMonthlySellingBloc, GetMonthlySellingState>(
+        builder: (context, state) {
+          if (state is GetMonthlySellingLoading) {
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
+          }
 
-        if (state is GetMonthlySellingSuccess) {
-          final monthlyEntity = state.monthlySalesEntity;
-          final days = _mapMonthlyData(monthlyEntity);
-          final totalAmount = _formatMoney(monthlyEntity.data.jamiSumma);
-          final monthLabel =
-              "${monthlyEntity.data.oy.toString().padLeft(2, '0')}.${monthlyEntity.data.yil}";
+          if (state is GetMonthlySellingError) {
+            return Center(
+              child: Container(
+                constraints: const BoxConstraints(maxWidth: 460),
+                margin: const EdgeInsets.all(24),
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(18),
+                  boxShadow: [
+                    BoxShadow(
+                      blurRadius: 18,
+                      offset: const Offset(0, 10),
+                      color: Colors.black.withOpacity(0.06),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      Icons.error_outline,
+                      size: 44,
+                      color: Colors.red,
+                    ),
+                    const SizedBox(height: 12),
+                    const Text(
+                      "Xatolik yuz berdi",
+                      style: TextStyle(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 18,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      state.message,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: Colors.grey.shade700),
+                    ),
+                    const SizedBox(height: 16),
+                    ElevatedButton(
+                      onPressed: () {
+                        context
+                            .read<GetMonthlySellingBloc>()
+                            .add(const MonthlySellingE());
+                      },
+                      child: const Text("Qayta urinish"),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }
 
-          return Padding(
-            padding: const EdgeInsets.all(22),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const SizedBox(height: 18),
-                Expanded(
-                  child: RefreshIndicator(
-                    onRefresh: () async {
-                      context
-                          .read<GetMonthlySellingBloc>()
-                          .add(const MonthlySellingE());
-                    },
-                    child: SingleChildScrollView(
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      child: Container(
-                        padding: const EdgeInsets.all(18),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(18),
-                          boxShadow: [
-                            BoxShadow(
-                              blurRadius: 18,
-                              offset: const Offset(0, 10),
-                              color: Colors.black.withOpacity(0.06),
-                            ),
-                          ],
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            Row(
-                              children: [
-                                const Expanded(
-                                  child: Text(
-                                    "Oylik savdo",
-                                    style: TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.w700,
-                                    ),
-                                  ),
-                                ),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 14,
-                                    vertical: 10,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFFEAF4FF),
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: Text(
-                                    monthLabel,
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.w700,
-                                      color: Color(0xFF0B74E5),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 14),
-                            const Divider(height: 1),
-                            const SizedBox(height: 10),
-                            _MonthlyDailyTable(
-                              days: days,
-                              formatDate: _formatDateMMDDYYYY,
-                              formatMoney: _formatMoney,
-                              onRowTap: (day) =>
-                                  _showDayWorkersDialog(context, day),
-                            ),
-                            const SizedBox(height: 18),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 18,
-                                vertical: 16,
+          if (state is GetMonthlySellingSuccess) {
+            final monthlyEntity = state.monthlySalesEntity;
+            final days = _mapMonthlyData(monthlyEntity);
+            final totalAmount = _formatMoney(monthlyEntity.data.jamiSumma);
+            final monthLabel =
+                "${monthlyEntity.data.oy.toString().padLeft(2, '0')}.${monthlyEntity.data.yil}";
+            final oyParam =
+                '${monthlyEntity.data.yil}-${monthlyEntity.data.oy.toString().padLeft(2, '0')}';
+
+            return Padding(
+              padding: const EdgeInsets.all(22),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const SizedBox(height: 18),
+                  Expanded(
+                    child: RefreshIndicator(
+                      onRefresh: () async {
+                        context
+                            .read<GetMonthlySellingBloc>()
+                            .add(const MonthlySellingE());
+                      },
+                      child: SingleChildScrollView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        child: Container(
+                          padding: const EdgeInsets.all(18),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(18),
+                            boxShadow: [
+                              BoxShadow(
+                                blurRadius: 18,
+                                offset: const Offset(0, 10),
+                                color: Colors.black.withOpacity(0.06),
                               ),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFEAF4FF),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Row(
+                            ],
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              Row(
                                 children: [
-                                  const Text(
-                                    "Umumiy summa:",
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.w700,
-                                      color: Color(0xFF0B74E5),
+                                  const Expanded(
+                                    child: Text(
+                                      "Oylik savdo",
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.w700,
+                                      ),
                                     ),
                                   ),
-                                  const Spacer(),
-                                  Text(
-                                    totalAmount,
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.w800,
-                                      color: Color(0xFF0B74E5),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 14,
+                                      vertical: 10,
                                     ),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFEAF4FF),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Text(
+                                      monthLabel,
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.w700,
+                                        color: Color(0xFF0B74E5),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 10),
+                                  BlocBuilder<FinishMonthlySellingBloc,
+                                      FinishMonthlySellingState>(
+                                    builder: (context, finishState) {
+                                      final isLoading = finishState
+                                      is FinishMonthlySellingLoading;
+
+                                      return isLoading
+                                          ? Container(
+                                        height: 44,
+                                        width: 44,
+                                        alignment: Alignment.center,
+                                        child: const SizedBox(
+                                          height: 18,
+                                          width: 18,
+                                          child:
+                                          CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                            color: Colors.blue,
+                                          ),
+                                        ),
+                                      )
+                                          : ElevatedWidget(
+                                        onPressed: () {
+                                          context
+                                              .read<
+                                              FinishMonthlySellingBloc>()
+                                              .add(
+                                            FinishMonthlySellingE(
+                                              oy: oyParam,
+                                            ),
+                                          );
+                                        },
+                                        text: "Yakunlash",
+                                        backgroundColor: Colors.blue,
+                                        textColor: Colors.white,
+                                      );
+                                    },
                                   ),
                                 ],
                               ),
-                            ),
-                            const SizedBox(height: 10),
-                            Align(
-                              alignment: Alignment.centerRight,
-                              child: Text(
-                                "Sotuvlar soni: ${monthlyEntity.data.sotuvlarSoni}",
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.grey.shade700,
+                              const SizedBox(height: 14),
+                              const Divider(height: 1),
+                              const SizedBox(height: 10),
+                              _MonthlyDailyTable(
+                                days: days,
+                                formatDate: _formatDateMMDDYYYY,
+                                formatMoney: _formatMoney,
+                                onRowTap: (day) =>
+                                    _showDayWorkersDialog(context, day),
+                              ),
+                              const SizedBox(height: 18),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 18,
+                                  vertical: 16,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFEAF4FF),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Row(
+                                  children: [
+                                    const Text(
+                                      "Umumiy summa:",
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.w700,
+                                        color: Color(0xFF0B74E5),
+                                      ),
+                                    ),
+                                    const Spacer(),
+                                    Text(
+                                      totalAmount,
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.w800,
+                                        color: Color(0xFF0B74E5),
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
-                            ),
-                          ],
+                              const SizedBox(height: 10),
+                              Align(
+                                alignment: Alignment.centerRight,
+                                child: Text(
+                                  "Sotuvlar soni: ${monthlyEntity.data.sotuvlarSoni}",
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.grey.shade700,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
                   ),
-                ),
-              ],
-            ),
-          );
-        }
+                ],
+              ),
+            );
+          }
 
-        return const SizedBox();
-      },
+          return const SizedBox();
+        },
+      ),
     );
   }
 
@@ -404,7 +470,9 @@ class _MonthlySellingPageState extends State<MonthlySellingPage> {
                                     ),
                                     Expanded(
                                       flex: 3,
-                                      child: Text(w.phone.isEmpty ? "-" : w.phone),
+                                      child: Text(
+                                        w.phone.isEmpty ? "-" : w.phone,
+                                      ),
                                     ),
                                     Expanded(
                                       flex: 2,

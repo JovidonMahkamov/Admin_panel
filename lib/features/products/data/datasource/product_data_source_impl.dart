@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:admin_panel/core/networks/api_urls.dart';
 import 'package:admin_panel/core/networks/dio_client.dart';
 import 'package:admin_panel/core/utils/logger.dart';
@@ -5,6 +7,7 @@ import 'package:admin_panel/features/products/data/datasource/product_data_sourc
 import 'package:admin_panel/features/products/data/model/create_product_response_model.dart';
 import 'package:admin_panel/features/products/data/model/delete_product_model.dart';
 import 'package:admin_panel/features/products/data/model/product_model.dart';
+import 'package:admin_panel/features/products/data/model/update_product_model.dart';
 import 'package:admin_panel/features/products/domain/entity/create_product_params.dart';
 import 'package:dio/dio.dart';
 
@@ -19,7 +22,8 @@ class ProductDataSourceImpl implements ProductDataSource {
       final response = await dioClient.get(ApiUrls.getProducts);
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        final List<dynamic> dataList = response.data['data'] as List<dynamic>? ?? [];
+        final List<dynamic> dataList =
+            response.data['data'] as List<dynamic>? ?? [];
 
         return dataList
             .map((e) => ProductModel.fromJson(e as Map<String, dynamic>))
@@ -84,12 +88,56 @@ class ProductDataSourceImpl implements ProductDataSource {
   }
 
   @override
-  Future<DeleteProductModel> deleteProduct({required int id}) async{
-    try{
+  Future<DeleteProductModel> deleteProduct({required int id}) async {
+    try {
       final response = await dioClient.delete("${ApiUrls.delete}/$id");
       if (response.statusCode == 200 || response.statusCode == 201) {
         LoggerService.info('statistics successful: ${response.data}');
         return DeleteProductModel.fromJson(response.data);
+      } else {
+        LoggerService.warning("statistics failed:${response.statusCode}");
+        throw Exception('statistics failed: ${response.statusCode}');
+      }
+    } catch (e) {
+      LoggerService.error('Error during user statistics: $e');
+      rethrow;
+    }
+  }
+
+  @override
+  Future<UpdateProductModel> updateProduct({
+    required int id,
+    required String nomi,
+    required String? narxDona,
+    required String? narxMetr,
+    required String? narxPochka,
+    required String? pochka,
+    required String? metr,
+    required String? miqdor,
+    required String? kelganNarx,
+    required String? jamiNarx,
+    File? rasm,
+  }) async{
+    try {
+      final response = await dioClient.patch(
+        "${ApiUrls.updateProduct}/$id",
+        data: {
+          "tovar_id ": id,
+          "nomi": nomi,
+          "narx_dona": narxDona,
+          "narx_metr": narxMetr,
+          "narx_pochka": narxPochka,
+          "pochka": pochka,
+          "metr": metr,
+          "miqdor": miqdor,
+          "kelgan_narx": kelganNarx,
+          "jami_narx": jamiNarx,
+          "rasm": rasm,
+        },
+      );
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        LoggerService.info('statistics successful: ${response.data}');
+        return UpdateProductModel.fromJson(response.data);
       } else {
         LoggerService.warning("statistics failed:${response.statusCode}");
         throw Exception('statistics failed: ${response.statusCode}');

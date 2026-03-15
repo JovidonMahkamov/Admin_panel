@@ -11,6 +11,7 @@ class WorkerDataSourceImpl implements WorkerDataSource {
   final DioClient dioClient = DioClient();
 
   WorkerDataSourceImpl();
+
   @override
   Future<GetAllWorkersModel> getAllWorker() async {
     try {
@@ -29,9 +30,22 @@ class WorkerDataSourceImpl implements WorkerDataSource {
   }
 
   @override
-  Future<CreateWorkerResponseModel> createWorker({required String fish, required String login, required String parol, required String telefon}) async{
+  Future<CreateWorkerResponseModel> createWorker({
+    required String fish,
+    required String login,
+    required String parol,
+    required String telefon,
+  }) async {
     try {
-      final response = await dioClient.post(ApiUrls.createWorker,data: {"fish":fish,"login":login,"parol":parol,"telefon":telefon});
+      final response = await dioClient.post(
+        ApiUrls.createWorker,
+        data: {
+          "fish": fish,
+          "login": login,
+          "parol": parol,
+          "telefon": telefon,
+        },
+      );
       if (response.statusCode == 200 || response.statusCode == 201) {
         LoggerService.info('statistics successful: ${response.data}');
         return CreateWorkerResponseModel.fromJson(response.data);
@@ -46,7 +60,7 @@ class WorkerDataSourceImpl implements WorkerDataSource {
   }
 
   @override
-  Future<DeleteWorkerResponseModel> deleteWorker({required int id}) async{
+  Future<DeleteWorkerResponseModel> deleteWorker({required int id}) async {
     try {
       final response = await dioClient.delete("${ApiUrls.deleteWorker}/$id");
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -63,9 +77,23 @@ class WorkerDataSourceImpl implements WorkerDataSource {
   }
 
   @override
-  Future<UpdateWorkerResponseModel> updateWorker({required int id, required String fish, required String parol, required String login, required String telefon})async {
+  Future<UpdateWorkerResponseModel> updateWorker({
+    required int id,
+    required String fish,
+    required String parol,
+    required String login,
+    required String telefon,
+  }) async {
     try {
-      final response = await dioClient.patch("${ApiUrls.updateWorker}/$id", data: {"fish": fish, "parol":parol, "telefon": telefon, "login": login});
+      final response = await dioClient.patch(
+        "${ApiUrls.updateWorker}/$id",
+        data: {
+          "fish": fish,
+          "parol": parol,
+          "telefon": telefon,
+          "login": login,
+        },
+      );
       if (response.statusCode == 200 || response.statusCode == 201) {
         LoggerService.info('statistics successful: ${response.data}');
         return UpdateWorkerResponseModel.fromJson(response.data);
@@ -78,6 +106,4 @@ class WorkerDataSourceImpl implements WorkerDataSource {
       rethrow;
     }
   }
-
-
 }

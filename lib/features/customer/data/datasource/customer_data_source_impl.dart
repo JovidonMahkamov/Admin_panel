@@ -30,8 +30,11 @@ class CustomerDataSourceImpl implements CustomerDataSource {
   }
 
   @override
-  Future<CreateCustomerResponseModel> createCustomer(
-      {required String fish, required String manzil, required String telefon}) async {
+  Future<CreateCustomerResponseModel> createCustomer({
+    required String fish,
+    required String manzil,
+    required String telefon,
+  }) async {
     try {
       final response = await dioClient.post(ApiUrls.createCustomer);
       if (response.statusCode == 200 || response.statusCode == 201) {
@@ -65,17 +68,24 @@ class CustomerDataSourceImpl implements CustomerDataSource {
   }
 
   @override
-  Future<UpdateCustomerModel> updateCustomer(
-      {required int id, required String fish, required int qarzdorlik, required String manzil, required String telefon}) async {
+  Future<UpdateCustomerModel> updateCustomer({
+    required int id,
+    required String fish,
+    required int qarzdorlik,
+    required String manzil,
+    required String telefon,
+  }) async {
     try {
-      final response = await dioClient.patch("${ApiUrls.updateCustomer}/$id",
-          data: {
-            "id": id,
-            "fish": fish,
-            "qarzdorlik": qarzdorlik,
-            "manzil": manzil,
-            "telefon": telefon
-          });
+      final response = await dioClient.patch(
+        "${ApiUrls.updateCustomer}/$id",
+        data: {
+          "id": id,
+          "fish": fish,
+          "qarzdorlik": qarzdorlik,
+          "manzil": manzil,
+          "telefon": telefon,
+        },
+      );
       if (response.statusCode == 200 || response.statusCode == 201) {
         LoggerService.info('statistics successful: ${response.data}');
         return UpdateCustomerModel.fromJson(response.data);
