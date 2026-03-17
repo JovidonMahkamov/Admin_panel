@@ -1,4 +1,5 @@
 import 'package:admin_panel/features/customer/data/datasource/customer_data_source.dart';
+import 'package:admin_panel/features/customer/domain/entity/create_customer_request_entity.dart';
 import 'package:admin_panel/features/customer/domain/entity/create_customer_response_entity.dart';
 import 'package:admin_panel/features/customer/domain/entity/get_all_customers_entity.dart';
 import 'package:admin_panel/features/customer/domain/entity/get_customer_detail_entity.dart';
@@ -13,15 +14,6 @@ class CustomerRepositoryImpl implements CustomerRepositories {
 
   @override
   Future<GetAllCustomersEntity> getAllCustomers() => remote.getAllCustomers();
-
-  @override
-  Future<CreateCustomerResponseEntity> createCustomer({
-    required String fish,
-    required String manzil,
-    required String telefon,
-  }) {
-    return remote.createCustomer(fish: fish, manzil: manzil, telefon: telefon);
-  }
 
   @override
   Future<DeleteCustomerResponseEntity> deleteCustomer({required int id}) {
@@ -48,5 +40,10 @@ class CustomerRepositoryImpl implements CustomerRepositories {
   @override
   Future<GetCustomerDetailEntity> getCustomer({required int id}) {
     return remote.getCustomer(id: id);
+  }
+
+  @override
+  Future<CreateCustomerResponseEntity> createCustomer({required CreateCustomerRequestEntity createCustomer}) {
+    return remote.createCustomer(createCustomer: createCustomer);
   }
 }

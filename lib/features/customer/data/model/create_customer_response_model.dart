@@ -24,6 +24,7 @@ class CreateCustomerResponseModel extends CreateCustomerResponseEntity {
         'fish': data.fish,
         'telefon': data.telefon,
         'manzil': data.manzil,
+        'mijoz_turi"': data.mijozTuri,
         'qarzdorlik': data.qarzdorlik,
         'rasm': data.rasm,
         'yaratilgan': data.yaratilgan.toIso8601String(),

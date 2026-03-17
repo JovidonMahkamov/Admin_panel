@@ -9,6 +9,7 @@ class GetCustomerModel extends GetCustomerEntity {
     required super.qarzdorlik,
     required super.rasm,
     required super.yaratilgan,
+    required super.mijozTuri,
   });
 
   factory GetCustomerModel.fromJson(Map<String, dynamic> json) {
@@ -17,6 +18,7 @@ class GetCustomerModel extends GetCustomerEntity {
       fish: json['fish'] ?? '',
       telefon: json['telefon'] ?? '',
       manzil: json['manzil'] ?? '',
+      mijozTuri: json['mijoz_turi'] ?? '',
       qarzdorlik: json['qarzdorlik'] ?? 0,
       rasm: json['rasm'],
       yaratilgan: DateTime.tryParse(json['yaratilgan'] ?? '') ?? DateTime.now(),
@@ -29,6 +31,7 @@ class GetCustomerModel extends GetCustomerEntity {
       'fish': fish,
       'telefon': telefon,
       'manzil': manzil,
+      'mijoz_turi': mijozTuri,
       'qarzdorlik': qarzdorlik,
       'rasm': rasm,
       'yaratilgan': yaratilgan.toIso8601String(),

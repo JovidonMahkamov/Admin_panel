@@ -3,6 +3,7 @@ class GetCustomerEntity {
   final String fish;
   final String telefon;
   final String manzil;
+  final String mijozTuri;
   final num qarzdorlik;
   final String? rasm;
   final DateTime yaratilgan;
@@ -15,5 +16,6 @@ class GetCustomerEntity {
     required this.qarzdorlik,
     required this.rasm,
     required this.yaratilgan,
+    required this.mijozTuri,
   });
 }

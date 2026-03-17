@@ -1,3 +1,5 @@
+import 'package:admin_panel/features/customer/domain/entity/create_customer_request_entity.dart';
+
 abstract class CustomerEvent {
   const CustomerEvent();
 }
@@ -11,14 +13,10 @@ class GetCustomersE extends CustomerEvent {
 }
 
 class CreateCustomerE extends CustomerEvent {
-  final String fish;
-  final String manzil;
-  final String telefon;
+  final CreateCustomerRequestEntity createCustomer;
 
   const CreateCustomerE({
-    required this.fish,
-    required this.manzil,
-    required this.telefon,
+    required this.createCustomer,
   });
 }
 

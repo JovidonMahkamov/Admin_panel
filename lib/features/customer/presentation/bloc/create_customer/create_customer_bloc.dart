@@ -16,9 +16,7 @@ class CreateCustomerBloc extends Bloc<CustomerEvent, CreateCustomerState> {
     emit(CreateCustomerLoading());
     try {
       final result = await createCustomerUseCase(
-          fish: event.fish,
-          manzil: event.manzil,
-          telefon: event.telefon,
+          createCustomer: event.createCustomer,
       );
       emit(CreateCustomerSuccess(createCustomerResponseEntity: result));
     } on DioException catch (e) {

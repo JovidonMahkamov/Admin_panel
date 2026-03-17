@@ -1,12 +1,17 @@
+import 'package:admin_panel/features/customer/presentation/bloc/create_customer/create_customer_state.dart';
 import 'package:admin_panel/features/customer/presentation/bloc/get_customer/get_customer_bloc.dart';
 import 'package:admin_panel/features/customer/presentation/bloc/update_customer/update_customer_state.dart';
+import 'package:admin_panel/features/dashboard/presentation/widgets/elvated_button_wg.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../domain/entity/create_customer_request_entity.dart';
 import '../../domain/entity/get_customer_entity.dart';
+import '../bloc/create_customer/create_customer_bloc.dart';
 import '../bloc/customer_event.dart';
 import '../bloc/get_all_customers/get_all_customers_bloc.dart';
 import '../bloc/get_all_customers/get_all_customers_state.dart';
 import '../bloc/update_customer/update_customer_bloc.dart';
+import '../widgets/create_customer_dialog_wg.dart';
 import '../widgets/customer_details_dialog_wg.dart';
 import '../widgets/edit_customer_dialog_wg.dart';
 
@@ -69,110 +74,166 @@ class _CustomerPageState extends State<CustomerPage> {
     );
   }
 
+  void _openCreateCustomerDialog() {
+    showDialog(
+      context: context,
+      builder: (_) => BlocProvider.value(
+        value: context.read<CreateCustomerBloc>(),
+        child: CreateCustomerDialog(
+          onSave: (customer) {
+            // Customer yaratish eventi
+            context.read<CreateCustomerBloc>().add(
+              CreateCustomerE(
+                createCustomer: CreateCustomerRequestEntity(
+                  fish: customer.createCustomer.fish,
+                  telefon: customer.createCustomer.telefon,
+                  manzil: customer.createCustomer.manzil,
+                  mijozTuri: customer.createCustomer.mijozTuri,
+                ),
+              ),
+            );
+
+            // BlocListener orqali muvaffaqiyatni kutamiz
+          },
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(22),
-      child: BlocListener<UpdateCustomerBloc, UpdateCustomerState>(
+      child: BlocListener<CreateCustomerBloc, CreateCustomerState>(
         listener: (context, state) {
-          if (state is UpdateCustomersSuccess) {
+          if (state is CreateCustomerSuccess) {
+            // Dialogni yopish
+            Navigator.pop(context);
+
+            // UI yangilash
             context.read<GetAllCustomersBloc>().add(GetAllCustomersE());
+
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                  content: Text("Mijoz muvaffaqiyatli yangilandi")),
+              const SnackBar(content: Text("Mijoz muvaffaqiyatli qo‘shildi")),
             );
           }
-          if (state is UpdateCustomersError) {
+
+          if (state is CreateCustomerError) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text("Xatolik: ${state.message}")),
             );
           }
         },
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const SizedBox(height: 18),
-            Expanded(
-              child: SingleChildScrollView(
-                child: Container(
-                  padding: const EdgeInsets.all(18),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(18),
-                    boxShadow: [
-                      BoxShadow(
-                        blurRadius: 18,
-                        offset: const Offset(0, 10),
-                        color: Colors.black.withOpacity(0.06),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Row(
-                        children: const [
-                          Expanded(
-                            child: Text(
-                              "Mijozlar",
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w700,
+
+        child: BlocListener<UpdateCustomerBloc, UpdateCustomerState>(
+          listener: (context, state) {
+            if (state is UpdateCustomersSuccess) {
+              context.read<GetAllCustomersBloc>().add(GetAllCustomersE());
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                    content: Text("Mijoz muvaffaqiyatli yangilandi")),
+              );
+            }
+            if (state is UpdateCustomersError) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text("Xatolik: ${state.message}")),
+              );
+            }
+          },
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const SizedBox(height: 18),
+              Expanded(
+                child: SingleChildScrollView(
+                  child: Container(
+                    padding: const EdgeInsets.all(18),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(18),
+                      boxShadow: [
+                        BoxShadow(
+                          blurRadius: 18,
+                          offset: const Offset(0, 10),
+                          color: Colors.black.withOpacity(0.06),
+                        ),
+                      ],
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Row(
+                          children: [
+                            const Expanded(
+                              child: Text(
+                                "Mijozlar",
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w700,
+                                ),
                               ),
                             ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 14),
-                      const Divider(height: 1),
-                      const SizedBox(height: 10),
-
-                      BlocBuilder<GetAllCustomersBloc,
-                          GetAllCustomersState>(
-                        builder: (context, state) {
-                          if (state is GetAllCustomersLoading) {
-                            return const Center(
-                              child: CircularProgressIndicator(),
-                            );
-                          }
-
-                          if (state is GetAllCustomersError) {
-                            return Center(
-                              child: Text(
-                                state.message,
-                                style:
-                                const TextStyle(color: Colors.red),
-                              ),
-                            );
-                          }
-
-                          if (state is GetAllCustomersSuccess) {
-                            final rows =
-                                state.getAllCustomersEntity.data;
-
-                            if (rows.isEmpty) {
+        
+                            ElevatedWidget(
+                              size: 180,
+                              text: "Mijoz qo‘shish",
+                              backgroundColor: Colors.blue,
+                              textColor: Colors.white,
+                              onPressed: _openCreateCustomerDialog,
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 14),
+                        const Divider(height: 1),
+                        const SizedBox(height: 10),
+        
+                        BlocBuilder<GetAllCustomersBloc,
+                            GetAllCustomersState>(
+                          builder: (context, state) {
+                            if (state is GetAllCustomersLoading) {
                               return const Center(
-                                child: Text("Mijozlar mavjud emas"),
+                                child: CircularProgressIndicator(),
                               );
                             }
-
-                            return _CustomerTable(
-                              rows: rows,
-                              onEdit: (index, customer) =>
-                                  _openEditCustomerDialog(customer),
-                              onRowTap: _openCustomerDetails,
-                            );
-                          }
-
-                          return const SizedBox.shrink();
-                        },
-                      ),
-                    ],
+        
+                            if (state is GetAllCustomersError) {
+                              return Center(
+                                child: Text(
+                                  state.message,
+                                  style:
+                                  const TextStyle(color: Colors.red),
+                                ),
+                              );
+                            }
+        
+                            if (state is GetAllCustomersSuccess) {
+                              final rows =
+                                  state.getAllCustomersEntity.data;
+        
+                              if (rows.isEmpty) {
+                                return const Center(
+                                  child: Text("Mijozlar mavjud emas"),
+                                );
+                              }
+        
+                              return _CustomerTable(
+                                rows: rows,
+                                onEdit: (index, customer) =>
+                                    _openEditCustomerDialog(customer),
+                                onRowTap: _openCustomerDetails,
+                              );
+                            }
+        
+                            return const SizedBox.shrink();
+                          },
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

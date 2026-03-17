@@ -7,6 +7,7 @@ import 'package:admin_panel/features/customer/data/model/delete_customer_respons
 import 'package:admin_panel/features/customer/data/model/get_all_customers_model.dart';
 import 'package:admin_panel/features/customer/data/model/get_customer_detail_model.dart';
 import 'package:admin_panel/features/customer/data/model/update_customer_model.dart';
+import 'package:admin_panel/features/customer/domain/entity/create_customer_request_entity.dart';
 
 class CustomerDataSourceImpl implements CustomerDataSource {
   final DioClient dioClient = DioClient();
@@ -20,27 +21,6 @@ class CustomerDataSourceImpl implements CustomerDataSource {
       if (response.statusCode == 200 || response.statusCode == 201) {
         LoggerService.info('statistics successful: ${response.data}');
         return GetAllCustomersModel.fromJson(response.data);
-      } else {
-        LoggerService.warning("statistics failed:${response.statusCode}");
-        throw Exception('statistics failed: ${response.statusCode}');
-      }
-    } catch (e) {
-      LoggerService.error('Error during user statistics: $e');
-      rethrow;
-    }
-  }
-
-  @override
-  Future<CreateCustomerResponseModel> createCustomer({
-    required String fish,
-    required String manzil,
-    required String telefon,
-  }) async {
-    try {
-      final response = await dioClient.post(ApiUrls.createCustomer);
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        LoggerService.info('statistics successful: ${response.data}');
-        return CreateCustomerResponseModel.fromJson(response.data);
       } else {
         LoggerService.warning("statistics failed:${response.statusCode}");
         throw Exception('statistics failed: ${response.statusCode}');
@@ -112,6 +92,34 @@ class CustomerDataSourceImpl implements CustomerDataSource {
       }
     } catch (e) {
       LoggerService.error('Error during user statistics: $e');
+      rethrow;
+    }
+  }
+
+  @override
+  Future<CreateCustomerResponseModel> createCustomer({
+    required CreateCustomerRequestEntity createCustomer,
+  }) async {
+    try {
+      final response = await dioClient.post(
+        ApiUrls.createCustomer,
+        data: {
+          "fish": createCustomer.fish,
+          "telefon": createCustomer.telefon,
+          "manzil": createCustomer.manzil,
+          "mijoz_turi": createCustomer.mijozTuri,
+        },
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        LoggerService.info('create customer success: ${response.data}');
+        return CreateCustomerResponseModel.fromJson(response.data);
+      } else {
+        LoggerService.warning("create customer failed:${response.statusCode}");
+        throw Exception('create customer failed: ${response.statusCode}');
+      }
+    } catch (e) {
+      LoggerService.error('Error during create customer: $e');
       rethrow;
     }
   }

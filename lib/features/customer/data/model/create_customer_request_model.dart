@@ -5,6 +5,7 @@ class CreateCustomerRequestModel extends CreateCustomerRequestEntity {
     required super.fish,
     required super.manzil,
     required super.telefon,
+    required super.mijozTuri,
   });
 
   Map<String, dynamic> toJson() {
@@ -12,6 +13,7 @@ class CreateCustomerRequestModel extends CreateCustomerRequestEntity {
       'fish': fish,
       'manzil': manzil,
       'telefon': telefon,
+      'mijoz_turi"': mijozTuri,
     };
   }
 }
