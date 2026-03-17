@@ -12,6 +12,7 @@ abstract class ApiUrls {
   static const String createCustomer = '/mijozlar/';
   static const String deleteCustomer = '/mijozlar/';
   static const String updateCustomer = '/mijozlar/';
+  static const String getCustomer = '/mijozlar/';
 
   ///Dashboard
   static const String getDashboard = '/sotuv/bugun';

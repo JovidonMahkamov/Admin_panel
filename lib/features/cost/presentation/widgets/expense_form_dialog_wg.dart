@@ -37,11 +37,17 @@ class _ExpenseFormDialogWgState extends State<ExpenseFormDialogWg> {
     final initial = widget.initial;
 
     _paymentType = initial?.paymentType ?? PaymentType.naqd;
-    _workerId = initial?.workerId;
+
+    // workerId workers listida borligini tekshiramiz
+    final workerIds = widget.workers.map((w) => w.id).toSet();
+    _workerId = (initial?.workerId != null && workerIds.contains(initial!.workerId))
+        ? initial.workerId
+        : null;  // listda yo'q bo'lsa null qilamiz
+
     _summaCtrl = TextEditingController(
       text: initial != null ? formatAmount(initial.summa) : '',
     );
-    _currency = initial?.currency;
+    _currency = initial?.currency ?? CurrencyType.uzs;
     _convertatsiya = initial?.convertatsiya ?? false;
     _foyda = initial?.foyda ?? false;
     _sms = initial?.sms ?? true;

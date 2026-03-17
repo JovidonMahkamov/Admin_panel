@@ -1,35 +1,32 @@
+import 'package:admin_panel/features/customer/domain/entity/get_customer_detail_entity.dart';
+import 'package:admin_panel/features/customer/presentation/bloc/customer_event.dart';
+import 'package:admin_panel/features/customer/presentation/bloc/get_customer/get_customer_bloc.dart';
+import 'package:admin_panel/features/customer/presentation/bloc/get_customer/get_customer_state.dart';
 import 'package:flutter/material.dart';
-import '../pages/customer_page.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
-class CustomerDebtItem {
-  final String productName;
-  final String metr;
-  final String dona;
-  final String packet;
-  final String debtPrice;
-  final String takenTime;
-  final String imageAsset;
-
-  const CustomerDebtItem({
-    required this.productName,
-    required this.metr,
-    required this.dona,
-    required this.packet,
-    required this.debtPrice,
-    required this.takenTime,
-    required this.imageAsset,
-  });
-}
-
-class CustomerDetailsDialog extends StatelessWidget {
-  final CustomerRow customer;
-  final List<CustomerDebtItem> rows;
+class CustomerDetailsDialog extends StatefulWidget {
+  final int customerId;
+  final String customerName;
 
   const CustomerDetailsDialog({
     super.key,
-    required this.customer,
-    required this.rows,
+    required this.customerId,
+    required this.customerName,
   });
+
+  @override
+  State<CustomerDetailsDialog> createState() => _CustomerDetailsDialogState();
+}
+
+class _CustomerDetailsDialogState extends State<CustomerDetailsDialog> {
+  @override
+  void initState() {
+    super.initState();
+    context
+        .read<GetCustomerBloc>()
+        .add(GetCustomersE(id: widget.customerId));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -41,44 +38,71 @@ class CustomerDetailsDialog extends StatelessWidget {
         constraints: const BoxConstraints(maxWidth: 1150, minWidth: 900),
         child: Padding(
           padding: const EdgeInsets.fromLTRB(18, 14, 18, 18),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Row(
+          child: BlocBuilder<GetCustomerBloc, GetCustomerState>(
+            builder: (context, state) {
+              return Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  Expanded(
-                    child: Text(
-                      customer.customerName,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
+                  // Header
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          widget.customerName,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
-                      overflow: TextOverflow.ellipsis,
-                    ),
+                      InkWell(
+                        borderRadius: BorderRadius.circular(10),
+                        onTap: () => Navigator.pop(context),
+                        child: const Padding(
+                          padding: EdgeInsets.all(6),
+                          child:
+                          Icon(Icons.close, color: Colors.red, size: 18),
+                        ),
+                      ),
+                    ],
                   ),
-                  InkWell(
-                    borderRadius: BorderRadius.circular(10),
-                    onTap: () => Navigator.pop(context),
-                    child: const Padding(
-                      padding: EdgeInsets.all(6),
-                      child: Icon(Icons.close, color: Colors.red, size: 18),
+
+                  const SizedBox(height: 10),
+
+                  // Loading holati
+                  if (state is GetCustomerLoading)
+                    const Padding(
+                      padding: EdgeInsets.all(30),
+                      child: CircularProgressIndicator(),
                     ),
-                  ),
+
+                  // Xatolik holati
+                  if (state is GetCustomerError)
+                    Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Text(
+                        state.message,
+                        style: const TextStyle(color: Colors.red),
+                      ),
+                    ),
+
+                  // Ma'lumotlar
+                  if (state is GetCustomerSuccess) ...[
+                    _CustomerInfoBar(data: state.getCustomerDetailEntity.data),
+                    const SizedBox(height: 12),
+                    Flexible(
+                      child: SingleChildScrollView(
+                        child: _SotuvlarTable(
+                          sotuvlar:
+                          state.getCustomerDetailEntity.data.sotuvlar,
+                        ),
+                      ),
+                    ),
+                  ],
                 ],
-              ),
-
-              const SizedBox(height: 10),
-
-              _CustomerInfoBar(customer: customer),
-
-              const SizedBox(height: 12),
-
-              Flexible(
-                child: SingleChildScrollView(
-                  child: _DebtTable(rows: rows),
-                ),
-              ),
-            ],
+              );
+            },
           ),
         ),
       ),
@@ -86,14 +110,16 @@ class CustomerDetailsDialog extends StatelessWidget {
   }
 }
 
-class _CustomerInfoBar extends StatelessWidget {
-  final CustomerRow customer;
+// ===== Info bar — telefon, manzil, qarz =====
 
-  const _CustomerInfoBar({required this.customer});
+class _CustomerInfoBar extends StatelessWidget {
+  final CustomerDetailDataEntity data;
+
+  const _CustomerInfoBar({required this.data});
 
   @override
   Widget build(BuildContext context) {
-    Widget infoChip(String label, String value) {
+    Widget chip(String label, String value) {
       return Expanded(
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
@@ -106,12 +132,14 @@ class _CustomerInfoBar extends StatelessWidget {
             children: [
               Text(
                 "$label: ",
-                style: TextStyle(fontSize: 12, color: Colors.grey.shade700),
+                style:
+                TextStyle(fontSize: 12, color: Colors.grey.shade700),
               ),
               Expanded(
                 child: Text(
                   value,
-                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+                  style: const TextStyle(
+                      fontSize: 12, fontWeight: FontWeight.w600),
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
@@ -123,20 +151,24 @@ class _CustomerInfoBar extends StatelessWidget {
 
     return Row(
       children: [
-        infoChip("Telefon", customer.phone),
+        chip("Telefon", data.telefon),
         const SizedBox(width: 10),
-        infoChip("Manzil", customer.address),
+        chip("Manzil", data.manzil),
         const SizedBox(width: 10),
-        infoChip("Qarzi", customer.debt),
+        chip("Qarzi", data.qarzdorlik.toString()),
+        const SizedBox(width: 10),
+        chip("Mijoz turi", data.mijozTuri),
       ],
     );
   }
 }
 
-class _DebtTable extends StatelessWidget {
-  final List<CustomerDebtItem> rows;
+// ===== Sotuvlar jadvali =====
 
-  const _DebtTable({required this.rows});
+class _SotuvlarTable extends StatelessWidget {
+  final List<MijozSotuvEntity> sotuvlar;
+
+  const _SotuvlarTable({required this.sotuvlar});
 
   @override
   Widget build(BuildContext context) {
@@ -146,117 +178,226 @@ class _DebtTable extends StatelessWidget {
       color: Colors.grey.shade700,
     );
 
+    if (sotuvlar.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.all(20),
+        child: Center(
+          child: Text("Sotuvlar mavjud emas",
+              style: TextStyle(color: Colors.grey.shade600)),
+        ),
+      );
+    }
+
     return Column(
       children: [
+        // Jadval header
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 10),
           child: Row(
             children: [
-              Expanded(flex: 5, child: Text("Tovar Nomi", style: headerStyle)),
-              Expanded(flex: 2, child: Text("Metr", style: headerStyle)),
-              Expanded(flex: 2, child: Text("Dona", style: headerStyle)),
-              Expanded(flex: 2, child: Text("Pachka", style: headerStyle)),
-              Expanded(flex: 3, child: Text("Qarz summasi", style: headerStyle)),
+              SizedBox(width: 90, child: Text("Sana", style: headerStyle)),
+              SizedBox(
+                  width: 100,
+                  child: Text("To'lov turi", style: headerStyle)),
               Expanded(
-                flex: 2,
-                child: Align(
-                  alignment: Alignment.centerRight,
-                  child: Text("Olingan vaqti", style: headerStyle),
-                ),
-              ),
+                  flex: 4,
+                  child: Text("Tovar nomi", style: headerStyle)),
+              SizedBox(
+                  width: 70, child: Text("Metr", style: headerStyle)),
+              SizedBox(
+                  width: 70, child: Text("Dona", style: headerStyle)),
+              SizedBox(
+                  width: 70, child: Text("Pachka", style: headerStyle)),
+              SizedBox(
+                  width: 100,
+                  child: Text("Narx", style: headerStyle)),
+              SizedBox(
+                  width: 100,
+                  child: Text("Jami", style: headerStyle)),
+              SizedBox(
+                  width: 100,
+                  child: Text("To'langan", style: headerStyle)),
+              SizedBox(
+                  width: 80, child: Text("Qarz", style: headerStyle)),
             ],
           ),
         ),
         Divider(height: 1, color: Colors.grey.shade300),
 
-        ...List.generate(rows.length, (index) {
-          final r = rows[index];
-
-          return _HoverRow(
-            child: Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        flex: 5,
-                        child: Row(
-                          children: [
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(8),
-                              child: Image.asset(
-                                r.imageAsset,
-                                width: 44,
-                                height: 44,
-                                fit: BoxFit.cover,
-                                errorBuilder: (_, __, ___) {
-                                  return Container(
-                                    width: 44,
-                                    height: 44,
-                                    alignment: Alignment.center,
-                                    decoration: BoxDecoration(
-                                      color: Colors.grey.shade200,
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                    child: Icon(
-                                      Icons.image_not_supported,
-                                      size: 18,
-                                      color: Colors.grey.shade600,
-                                    ),
-                                  );
-                                },
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Text(
-                                r.productName,
-                                style: const TextStyle(fontWeight: FontWeight.w500),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Expanded(flex: 2, child: Text(r.metr)),
-                      Expanded(flex: 2, child: Text(r.dona)),
-                      Expanded(flex: 2, child: Text(r.packet)),
-                      Expanded(flex: 3, child: Text(r.debtPrice)),
-                      Expanded(
-                        flex: 2,
-                        child: Align(
-                          alignment: Alignment.centerRight,
-                          child: Text(r.takenTime),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                Divider(height: 1, color: Colors.grey.shade200),
-              ],
-            ),
-          );
+        // Sotuvlar
+        ...sotuvlar.expand((sotuv) {
+          return sotuv.mahsulotlar.map((mahsulot) {
+            return _SotuvRow(
+              sotuv: sotuv,
+              mahsulot: mahsulot,
+              // Faqat birinchi mahsulotda sotuv ma'lumotlari ko'rinadi
+              showSotuvInfo:
+              sotuv.mahsulotlar.indexOf(mahsulot) == 0,
+            );
+          }).toList();
         }),
       ],
     );
   }
 }
 
-class _HoverRow extends StatelessWidget {
-  final Widget child;
+class _SotuvRow extends StatelessWidget {
+  final MijozSotuvEntity sotuv;
+  final SotuvMahsulotEntity mahsulot;
+  final bool showSotuvInfo;
 
-  const _HoverRow({required this.child});
+  const _SotuvRow({
+    required this.sotuv,
+    required this.mahsulot,
+    required this.showSotuvInfo,
+  });
+
+  String _formatDate(DateTime date) {
+    final d = date.day.toString().padLeft(2, '0');
+    final m = date.month.toString().padLeft(2, '0');
+    final y = date.year.toString();
+    return '$d.$m.$y';
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        hoverColor: Colors.black.withOpacity(0.03),
-        splashColor: Colors.black.withOpacity(0.04),
-        child: child,
-      ),
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          child: Row(
+            children: [
+              // Sana — faqat birinchi mahsulotda
+              SizedBox(
+                width: 90,
+                child: Text(
+                  showSotuvInfo ? _formatDate(sotuv.sana) : '',
+                  style: const TextStyle(fontSize: 12),
+                ),
+              ),
+              // To'lov turi — faqat birinchi mahsulotda
+              SizedBox(
+                width: 100,
+                child: showSotuvInfo
+                    ? Container(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: _paymentColor(sotuv.tolovTuri)
+                        .withOpacity(0.12),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Text(
+                    sotuv.tolovTuri,
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: _paymentColor(sotuv.tolovTuri),
+                    ),
+                  ),
+                )
+                    : const SizedBox.shrink(),
+              ),
+              // Tovar nomi + rasm
+              Expanded(
+                flex: 4,
+                child: Row(
+                  children: [
+                    Container(
+                      width: 36,
+                      height: 36,
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade200,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: mahsulot.tovarRasm != null
+                          ? ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: Image.network(
+                          'https://olampardalar.uz${mahsulot.tovarRasm}',
+                          fit: BoxFit.cover,
+                          errorBuilder: (_, __, ___) => Icon(
+                            Icons.image_not_supported,
+                            size: 16,
+                            color: Colors.grey.shade500,
+                          ),
+                        ),
+                      )
+                          : Icon(Icons.inventory_2_outlined,
+                          size: 16, color: Colors.grey.shade500),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        mahsulot.tovarNomi,
+                        style: const TextStyle(
+                            fontSize: 12, fontWeight: FontWeight.w500),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              SizedBox(
+                  width: 70,
+                  child: Text(mahsulot.metr.toString(),
+                      style: const TextStyle(fontSize: 12))),
+              SizedBox(
+                  width: 70,
+                  child: Text(mahsulot.miqdor.toString(),
+                      style: const TextStyle(fontSize: 12))),
+              SizedBox(
+                  width: 70,
+                  child: Text(mahsulot.pochka.toString(),
+                      style: const TextStyle(fontSize: 12))),
+              SizedBox(
+                  width: 100,
+                  child: Text(mahsulot.narx.toString(),
+                      style: const TextStyle(fontSize: 12))),
+              SizedBox(
+                  width: 100,
+                  child: Text(mahsulot.jami.toString(),
+                      style: const TextStyle(fontSize: 12))),
+              // To'langan — faqat birinchi mahsulotda
+              SizedBox(
+                width: 100,
+                child: Text(
+                  showSotuvInfo ? sotuv.tolovQilingan.toString() : '',
+                  style: const TextStyle(fontSize: 12),
+                ),
+              ),
+              // Qarz — faqat birinchi mahsulotda, qizil rangda
+              SizedBox(
+                width: 80,
+                child: showSotuvInfo
+                    ? Text(
+                  sotuv.qarz.toString(),
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: sotuv.qarz > 0
+                        ? Colors.red
+                        : Colors.green,
+                  ),
+                )
+                    : const SizedBox.shrink(),
+              ),
+            ],
+          ),
+        ),
+        Divider(height: 1, color: Colors.grey.shade200),
+      ],
     );
+  }
+
+  Color _paymentColor(String tur) {
+    switch (tur) {
+      case 'terminal':
+        return const Color(0xFF2F80ED);
+      case 'click':
+        return const Color(0xFF27AE60);
+      default:
+        return const Color(0xFFE67E22);
+    }
   }
 }

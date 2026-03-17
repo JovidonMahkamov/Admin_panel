@@ -15,24 +15,31 @@ class PostHarajatE extends CostEvent {
 }
 
 class DeleteHarajatE extends CostEvent {
-  const DeleteHarajatE({required int id});
+  final int id;
+  const DeleteHarajatE({required this.id});
 }
-
 class UpdateHarajatE extends CostEvent {
+  final int id;
+  final int ishchiId;
+  final String izoh;
+  final bool sms;
+  final num summa;
+  final String tolovTuri;
+
   const UpdateHarajatE({
-    required int id,
-    required int ishchiId,
-    required String izoh,
-    required bool sms,
-    required num summa,
-    required String tolovTuri,
+    required this.id,
+    required this.ishchiId,
+    required this.izoh,
+    required this.sms,
+    required this.summa,
+    required this.tolovTuri,
   });
 }
 
 class GetKassaE extends CostEvent {
-  const GetKassaE({required String tur});
+  final String tur;
+  const GetKassaE({required this.tur});
 }
-
 
 class PostKassaE extends CostEvent {
   final String doKon;
@@ -53,18 +60,27 @@ class PostKassaE extends CostEvent {
 }
 
 class DeleteKassaE extends CostEvent {
-  const DeleteKassaE({required int id});
+  final int id;
+  const DeleteKassaE({required this.id});
 }
 
 class UpdateKassaE extends CostEvent {
+  final int id;
+  final String doKon;
+  final String izoh;
+  final String mahsulotNomi;
+  final bool sms;
+  final num summa;
+  final String tolovTuri;
+
   const UpdateKassaE({
-    required int id,
-    required String doKon,
-    required String izoh,
-    required String mahsulotNomi,
-    required bool sms,
-    required num summa,
-    required String tolovTuri,
+    required this.id,
+    required this.doKon,
+    required this.izoh,
+    required this.mahsulotNomi,
+    required this.sms,
+    required this.summa,
+    required this.tolovTuri,
   });
 }
 

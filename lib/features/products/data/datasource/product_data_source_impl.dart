@@ -119,21 +119,26 @@ class ProductDataSourceImpl implements ProductDataSource {
     File? rasm,
   }) async{
     try {
+      final formData = FormData.fromMap({
+        "nomi": nomi,
+        if (narxDona != null) "narx_dona": narxDona,
+        if (narxMetr != null) "narx_metr": narxMetr,
+        if (narxPochka != null) "narx_pochka": narxPochka,
+        if (pochka != null) "pochka": pochka,
+        if (metr != null) "metr": metr,
+        if (miqdor != null) "miqdor": miqdor,
+        if (kelganNarx != null) "kelgan_narx": kelganNarx,
+        if (jamiNarx != null) "jami_narx": jamiNarx,
+        if (rasm != null)
+          "rasm": await MultipartFile.fromFile(
+            rasm!.path,
+            filename: rasm!.path.split('/').last,
+          ),
+      });
+
       final response = await dioClient.patch(
         "${ApiUrls.updateProduct}/$id",
-        data: {
-          "tovar_id ": id,
-          "nomi": nomi,
-          "narx_dona": narxDona,
-          "narx_metr": narxMetr,
-          "narx_pochka": narxPochka,
-          "pochka": pochka,
-          "metr": metr,
-          "miqdor": miqdor,
-          "kelgan_narx": kelganNarx,
-          "jami_narx": jamiNarx,
-          "rasm": rasm,
-        },
+        data: formData,
       );
       if (response.statusCode == 200 || response.statusCode == 201) {
         LoggerService.info('statistics successful: ${response.data}');

@@ -20,6 +20,7 @@ class CostModel extends CostEntity {
 
 class CostItemModel extends CostItemEntity {
   const CostItemModel({
+    required super.ishchiFish,
     required super.id,
     required super.tolovTuri,
     required super.ishchiIdField,
@@ -32,6 +33,7 @@ class CostItemModel extends CostItemEntity {
   factory CostItemModel.fromJson(Map<String, dynamic> json) {
     return CostItemModel(
       id: json['id'] ?? 0,
+      ishchiFish: json['ishchi_fish'] ?? '',
       tolovTuri: json['tolov_turi'] ?? '',
       ishchiIdField: json['ishchi_id_field']?.toString() ?? '',
       summa: json['summa'] ?? 0,

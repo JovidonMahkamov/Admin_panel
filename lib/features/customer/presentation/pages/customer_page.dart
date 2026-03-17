@@ -1,3 +1,4 @@
+import 'package:admin_panel/features/customer/presentation/bloc/get_customer/get_customer_bloc.dart';
 import 'package:admin_panel/features/customer/presentation/bloc/update_customer/update_customer_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -27,14 +28,12 @@ class _CustomerPageState extends State<CustomerPage> {
     showDialog(
       context: context,
       barrierDismissible: true,
-      builder: (_) => CustomerDetailsDialog(
-        customer: CustomerRow(
+      builder: (_) => BlocProvider.value(
+        value: context.read<GetCustomerBloc>(),
+        child: CustomerDetailsDialog(
+          customerId: customer.id,
           customerName: customer.fish,
-          phone: customer.telefon,
-          address: customer.manzil,
-          debt: customer.qarzdorlik.toString(),
         ),
-        rows: const [],
       ),
     );
   }
@@ -52,15 +51,15 @@ class _CustomerPageState extends State<CustomerPage> {
           debt: "${customer.qarzdorlik}",
         ),
         onSave: (updatedCustomer) {
-          final cleanedDebt = updatedCustomer.debt
-              .replaceAll(" ", "");
+          final cleanedDebt = updatedCustomer.debt.replaceAll(" ", "");
           context.read<UpdateCustomerBloc>().add(
             UpdateCustomerE(
               id: customer.id,
               fish: updatedCustomer.customerName,
               telefon: updatedCustomer.phone,
               manzil: updatedCustomer.address,
-              qarzdorlik: (num.tryParse(cleanedDebt) ?? 0).toInt(),
+              qarzdorlik:
+              (num.tryParse(cleanedDebt) ?? 0).toInt(),
             ),
           );
 
@@ -79,7 +78,8 @@ class _CustomerPageState extends State<CustomerPage> {
           if (state is UpdateCustomersSuccess) {
             context.read<GetAllCustomersBloc>().add(GetAllCustomersE());
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text("Mijoz muvaffaqiyatli yangilandi")),
+              const SnackBar(
+                  content: Text("Mijoz muvaffaqiyatli yangilandi")),
             );
           }
           if (state is UpdateCustomersError) {
@@ -127,7 +127,8 @@ class _CustomerPageState extends State<CustomerPage> {
                       const Divider(height: 1),
                       const SizedBox(height: 10),
 
-                      BlocBuilder<GetAllCustomersBloc, GetAllCustomersState>(
+                      BlocBuilder<GetAllCustomersBloc,
+                          GetAllCustomersState>(
                         builder: (context, state) {
                           if (state is GetAllCustomersLoading) {
                             return const Center(
@@ -139,13 +140,15 @@ class _CustomerPageState extends State<CustomerPage> {
                             return Center(
                               child: Text(
                                 state.message,
-                                style: const TextStyle(color: Colors.red),
+                                style:
+                                const TextStyle(color: Colors.red),
                               ),
                             );
                           }
 
                           if (state is GetAllCustomersSuccess) {
-                            final rows = state.getAllCustomersEntity.data;
+                            final rows =
+                                state.getAllCustomersEntity.data;
 
                             if (rows.isEmpty) {
                               return const Center(
@@ -203,11 +206,13 @@ class _CustomerTable extends StatelessWidget {
               SizedBox(width: 70, child: Text("S/N", style: headerStyle)),
               Expanded(flex: 4, child: Text("Mijoz", style: headerStyle)),
               Expanded(
-                flex: 2,
-                child: Text("Telefon nomer", style: headerStyle),
-              ),
-              Expanded(flex: 2, child: Text("Manzil", style: headerStyle)),
-              Expanded(flex: 2, child: Text("Qarzdorligi", style: headerStyle)),
+                  flex: 2,
+                  child: Text("Telefon nomer", style: headerStyle)),
+              Expanded(
+                  flex: 2, child: Text("Manzil", style: headerStyle)),
+              Expanded(
+                  flex: 2,
+                  child: Text("Qarzdorligi", style: headerStyle)),
               Expanded(flex: 2, child: Text("", style: headerStyle)),
             ],
           ),
@@ -230,7 +235,9 @@ class _CustomerTable extends StatelessWidget {
                       Expanded(flex: 4, child: Text(r.fish)),
                       Expanded(flex: 2, child: Text(r.telefon)),
                       Expanded(flex: 2, child: Text(r.manzil)),
-                      Expanded(flex: 2, child: Text(r.qarzdorlik.toString())),
+                      Expanded(
+                          flex: 2,
+                          child: Text(r.qarzdorlik.toString())),
                       Expanded(
                         flex: 2,
                         child: GestureDetector(
@@ -238,7 +245,8 @@ class _CustomerTable extends StatelessWidget {
                           onTap: () => onEdit(index, r),
                           child: const Padding(
                             padding: EdgeInsets.all(6),
-                            child: Icon(Icons.edit, color: Colors.blue),
+                            child:
+                            Icon(Icons.edit, color: Colors.blue),
                           ),
                         ),
                       ),

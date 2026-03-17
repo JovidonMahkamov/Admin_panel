@@ -5,6 +5,7 @@ import 'package:admin_panel/features/customer/data/datasource/customer_data_sour
 import 'package:admin_panel/features/customer/data/model/create_customer_response_model.dart';
 import 'package:admin_panel/features/customer/data/model/delete_customer_response_model.dart';
 import 'package:admin_panel/features/customer/data/model/get_all_customers_model.dart';
+import 'package:admin_panel/features/customer/data/model/get_customer_detail_model.dart';
 import 'package:admin_panel/features/customer/data/model/update_customer_model.dart';
 
 class CustomerDataSourceImpl implements CustomerDataSource {
@@ -89,6 +90,22 @@ class CustomerDataSourceImpl implements CustomerDataSource {
       if (response.statusCode == 200 || response.statusCode == 201) {
         LoggerService.info('statistics successful: ${response.data}');
         return UpdateCustomerModel.fromJson(response.data);
+      } else {
+        LoggerService.warning("statistics failed:${response.statusCode}");
+        throw Exception('statistics failed: ${response.statusCode}');
+      }
+    } catch (e) {
+      LoggerService.error('Error during user statistics: $e');
+      rethrow;
+    }
+  }
+  @override
+  Future<GetCustomerDetailModel> getCustomer({required int id}) async {
+    try {
+      final response = await dioClient.get("${ApiUrls.getCustomer}/$id");
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        LoggerService.info('statistics successful: ${response.data}');
+        return GetCustomerDetailModel.fromJson(response.data);
       } else {
         LoggerService.warning("statistics failed:${response.statusCode}");
         throw Exception('statistics failed: ${response.statusCode}');

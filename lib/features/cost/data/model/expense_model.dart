@@ -15,7 +15,7 @@ class ExpenseModel extends ExpenseEntity {
       id: json['id'] ?? 0,
       tolovTuri: json['tolov_turi'] ?? '',
       ishchiIdField: json['ishchi_id_field'] ?? '',
-      summa: json['summa'] ?? 0,
+      summa: (json['summa'] ?? 0).toInt(),
       sms: json['sms'] ?? false,
       izoh: json['izoh'] ?? '',
       sana: json['sana'] ?? '',

@@ -12,6 +12,9 @@ class ProductEntity {
   final String? rasm;
   final String? qrKod;
   final int? sotildi;
+  final int? sotilganMiqdor; // yangi
+  final double? sotilganMetr; // yangi
+  final int? sotilganPochka;
   final DateTime yaratilgan;
 
   const ProductEntity({
@@ -29,5 +32,8 @@ class ProductEntity {
     this.rasm,
     this.qrKod,
     required this.yaratilgan,
+    this.sotilganMiqdor,
+    this.sotilganMetr,
+    this.sotilganPochka,
   });
 }

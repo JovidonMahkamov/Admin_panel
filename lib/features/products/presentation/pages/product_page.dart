@@ -10,6 +10,8 @@ import '../bloc/delete_product/delete_product_bloc.dart';
 import '../bloc/delete_product/delete_product_state.dart';
 import '../bloc/get_products/get_products_bloc.dart';
 import '../bloc/get_products/get_products_state.dart';
+import '../bloc/update_product/update_product_bloc.dart';
+import '../bloc/update_product/update_product_state.dart';
 import '../utils/product_media_helper.dart';
 import '../widgets/add_edit_product_dialog.dart';
 
@@ -31,10 +33,31 @@ class _ProductPageState extends State<ProductPage> {
     await showDialog(
       context: context,
       barrierDismissible: true,
-      builder: (_) => BlocProvider.value(
-        value: context.read<CreateProductBloc>(),
-        child: const AddEditProductDialog(
-          title: "Tovar qo‘shish",
+      builder: (_) => MultiBlocProvider(
+        providers: [
+          BlocProvider.value(value: context.read<CreateProductBloc>()),
+          BlocProvider.value(value: context.read<UpdateProductBloc>()),
+        ],
+        child: const AddEditProductDialog(title: "Tovar qo'shish"),
+      ),
+    );
+
+    if (!mounted) return;
+    context.read<GetProductsBloc>().add(const GetProductsE());
+  }
+
+  Future<void> _openEditProductDialog(int index, ProductRow product) async {
+    await showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (_) => MultiBlocProvider(
+        providers: [
+          BlocProvider.value(value: context.read<CreateProductBloc>()),
+          BlocProvider.value(value: context.read<UpdateProductBloc>()),
+        ],
+        child: AddEditProductDialog(
+          title: "Tovarni tahrirlash",
+          initial: product, // mavjud ma'lumotlarni uzatamiz
         ),
       ),
     );
@@ -43,19 +66,11 @@ class _ProductPageState extends State<ProductPage> {
     context.read<GetProductsBloc>().add(const GetProductsE());
   }
 
-  void _openEditProductDialog(int index, ProductRow product) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text("Tahrirlash hali ulanmagan"),
-      ),
-    );
-  }
-
   Future<void> _showQrDialog(ProductRow product) async {
     if (product.qrCodePath.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("QR kod topilmadi")),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("QR kod topilmadi")));
       return;
     }
 
@@ -90,7 +105,7 @@ class _ProductPageState extends State<ProductPage> {
                     children: [
                       const Expanded(
                         child: Text(
-                          "O‘chirishni tasdiqlang",
+                          "O'chirishni tasdiqlang",
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.w800,
@@ -106,7 +121,7 @@ class _ProductPageState extends State<ProductPage> {
                   const Divider(),
                   const SizedBox(height: 8),
                   Text(
-                    "Haqiqatan ham ushbu tovarni o‘chirmoqchimisiz?\n\n${product.productName}",
+                    "Haqiqatan ham ushbu tovarni o'chirmoqchimisiz?\n\n${product.productName}",
                     style: const TextStyle(height: 1.3),
                   ),
                   const SizedBox(height: 18),
@@ -115,7 +130,7 @@ class _ProductPageState extends State<ProductPage> {
                     children: [
                       OutlinedButton(
                         onPressed: () => Navigator.pop(context, false),
-                        child: const Text("Yo‘q"),
+                        child: const Text("Yo'q"),
                       ),
                       const SizedBox(width: 10),
                       ElevatedButton(
@@ -124,7 +139,7 @@ class _ProductPageState extends State<ProductPage> {
                           foregroundColor: Colors.white,
                         ),
                         onPressed: () => Navigator.pop(context, true),
-                        child: const Text("Ha, o‘chirish"),
+                        child: const Text("Ha, o'chirish"),
                       ),
                     ],
                   ),
@@ -137,48 +152,54 @@ class _ProductPageState extends State<ProductPage> {
     );
 
     if (result == true) {
-      context.read<DeleteProductBloc>().add(
-        DeleteProductE(id: product.id),
-      );
+      context.read<DeleteProductBloc>().add(DeleteProductE(id: product.id));
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<DeleteProductBloc, DeleteProductState>(
-      listener: (context, state) {
-        if (state is DeleteProductLoading) {
-          ScaffoldMessenger.of(context).hideCurrentSnackBar();
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text("Tovar o‘chirilmoqda..."),
-              duration: Duration(seconds: 1),
-            ),
-          );
-        }
-
-        if (state is DeleteProductSuccess) {
-          ScaffoldMessenger.of(context).hideCurrentSnackBar();
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(state.response.message),
-              backgroundColor: Colors.green,
-            ),
-          );
-
-          context.read<GetProductsBloc>().add(const GetProductsE());
-        }
-
-        if (state is DeleteProductError) {
-          ScaffoldMessenger.of(context).hideCurrentSnackBar();
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(state.message),
-              backgroundColor: Colors.red,
-            ),
-          );
-        }
-      },
+    return MultiBlocListener(
+      listeners: [
+        BlocListener<DeleteProductBloc, DeleteProductState>(
+          listener: (context, state) {
+            if (state is DeleteProductLoading) {
+              ScaffoldMessenger.of(context).hideCurrentSnackBar();
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text("Tovar o'chirilmoqda..."),
+                  duration: Duration(seconds: 1),
+                ),
+              );
+            }
+            if (state is DeleteProductSuccess) {
+              ScaffoldMessenger.of(context).hideCurrentSnackBar();
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(state.response.message),
+                  backgroundColor: Colors.green,
+                ),
+              );
+              context.read<GetProductsBloc>().add(const GetProductsE());
+            }
+            if (state is DeleteProductError) {
+              ScaffoldMessenger.of(context).hideCurrentSnackBar();
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(state.message),
+                  backgroundColor: Colors.red,
+                ),
+              );
+            }
+          },
+        ),
+        BlocListener<UpdateProductBloc, UpdateProductState>(
+          listener: (context, state) {
+            if (state is UpdateProductSuccess) {
+              context.read<GetProductsBloc>().add(const GetProductsE());
+            }
+          },
+        ),
+      ],
       child: Padding(
         padding: const EdgeInsets.all(22),
         child: Column(
@@ -216,7 +237,7 @@ class _ProductPageState extends State<ProductPage> {
                           ),
                           ElevatedWidget(
                             onPressed: _openAddProductDialog,
-                            text: "Tovar qo‘shish",
+                            text: "Tovar qo'shish",
                             backgroundColor: Colors.blueAccent,
                             textColor: Colors.white,
                           ),
@@ -230,21 +251,15 @@ class _ProductPageState extends State<ProductPage> {
                           if (state is GetProductsLoading) {
                             return const Padding(
                               padding: EdgeInsets.all(40),
-                              child: Center(
-                                child: CircularProgressIndicator(),
-                              ),
+                              child: Center(child: CircularProgressIndicator()),
                             );
                           }
-
                           if (state is GetProductsError) {
                             return Padding(
                               padding: const EdgeInsets.all(24),
-                              child: Center(
-                                child: Text(state.message),
-                              ),
+                              child: Center(child: Text(state.message)),
                             );
                           }
-
                           if (state is GetProductsSuccess) {
                             final rows = state.productEntity
                                 .map((e) => e.toProductRow())
@@ -265,7 +280,6 @@ class _ProductPageState extends State<ProductPage> {
                               onQrTap: (p) => _showQrDialog(p),
                             );
                           }
-
                           return const SizedBox.shrink();
                         },
                       ),
@@ -294,7 +308,9 @@ class ProductRow {
   final String jamiNarx;
   final String imagePath;
   final String qrCodePath;
-  final int sotildi;
+  final int sotilganMiqdor;
+  final double sotilganMetr;
+  final int sotilganPochka;
   final DateTime createdAt;
 
   const ProductRow({
@@ -311,7 +327,9 @@ class ProductRow {
     required this.imagePath,
     required this.qrCodePath,
     required this.createdAt,
-    required this.sotildi
+    required this.sotilganMiqdor,
+    required this.sotilganMetr,
+    required this.sotilganPochka,
   });
 
   ProductRow copyWith({
@@ -329,6 +347,9 @@ class ProductRow {
     String? qrCodePath,
     int? sotildi,
     DateTime? createdAt,
+    int? sotilganMiqdor,
+    double? sotilganMetr,
+    int? sotilganPochka,
   }) {
     return ProductRow(
       id: id ?? this.id,
@@ -344,10 +365,14 @@ class ProductRow {
       imagePath: imagePath ?? this.imagePath,
       qrCodePath: qrCodePath ?? this.qrCodePath,
       createdAt: createdAt ?? this.createdAt,
-      sotildi: sotildi ?? this.sotildi,
+      sotilganMetr: sotilganMetr ?? this.sotilganMetr,
+      sotilganMiqdor: sotilganMiqdor ?? this.sotilganMiqdor,
+      sotilganPochka: sotilganPochka ?? this.sotilganPochka,
     );
   }
 }
+
+// ===== Jadval =====
 
 class ProductsTable extends StatelessWidget {
   final List<ProductRow> rows;
@@ -368,106 +393,201 @@ class ProductsTable extends StatelessWidget {
     final headerStyle = TextStyle(
       fontWeight: FontWeight.w700,
       color: Colors.grey.shade800,
-      fontSize: 10
+      fontSize: 14,
     );
 
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          child: Row(
-            children: [
-              Expanded(flex: 5, child: Text("Tovar Nomi", style: headerStyle)),
-              Expanded(flex: 2, child: Text("Narxi metr", style: headerStyle)),
-              Expanded(flex: 2, child: Text("Narxi dona", style: headerStyle)),
-              Expanded(flex: 2, child: Text("Narxi pochka", style: headerStyle)),
-              Expanded(flex: 2, child: Text("Pochka", style: headerStyle)),
-              Expanded(flex: 2, child: Text("Metri", style: headerStyle)),
-              Expanded(flex: 2, child: Text("Miqdori", style: headerStyle)),
-              Expanded(flex: 2, child: Text("Kelgan narx", style: headerStyle)),
-              Expanded(flex: 2, child: Text("Jami narx", style: headerStyle)),
-              Expanded(flex: 2, child: Text("Sotildi", style: headerStyle)),
-              Expanded(flex: 2, child: Text("QR kod", style: headerStyle)),
-              Expanded(flex: 2, child: Text("", style: headerStyle)),
-            ],
-          ),
-        ),
-        Divider(height: 1, color: Colors.grey.shade300),
-        ...List.generate(rows.length, (index) {
-          final r = rows[index];
-
-          return _HoverRow(
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final tableWidth = constraints.maxWidth < 1100
+            ? 1100.0
+            : constraints.maxWidth;
+        return SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: SizedBox(
+            width: tableWidth,
             child: Column(
               children: [
                 Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
                   child: Row(
                     children: [
                       Expanded(
                         flex: 5,
-                        child: Row(
-                          children: [
-                            _ProductImage(path: r.imagePath),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Text(
-                                r.productName,
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.w500,
-                                ),
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                          ],
-                        ),
+                        child: Text("Tovar Nomi", style: headerStyle),
                       ),
-                      Expanded(flex: 2, child: Text(r.metrPrice)),
-                      Expanded(flex: 2, child: Text(r.donaPrice)),
-                      Expanded(flex: 2, child: Text(r.packetPrice)),
-                      Expanded(flex: 2, child: Text(r.pachka)),
-                      Expanded(flex: 2, child: Text(r.metri)),
-                      Expanded(flex: 2, child: Text(r.miqdori)),
-                      Expanded(flex: 2, child: Text(r.kelganNarx)),
-                      Expanded(flex: 2, child: Text(r.jamiNarx)),
-                      Expanded(flex: 2, child: Text(r.sotildi.toString())),
                       Expanded(
                         flex: 2,
-                        child: TextButton.icon(
-                          onPressed: () => onQrTap(r),
-                          icon: const Icon(Icons.qr_code),
-                          label: const Text("Ko‘rish"),
+                        child: Text("Narxi", style: headerStyle),
+                      ),
+                      Expanded(
+                        flex: 2,
+                        child: Text("Miqdor", style: headerStyle),
+                      ),
+                      Expanded(
+                        flex: 2,
+                        child: Text("Kelgan narx", style: headerStyle),
+                      ),
+                      Expanded(
+                        flex: 2,
+                        child: Text("Jami narx", style: headerStyle),
+                      ),
+                      Expanded(
+                        flex: 2,
+                        child: Text(
+                          "Sotildi",
+                          style: headerStyle.copyWith(
+                            color: Colors.red.shade700,
+                          ),
                         ),
                       ),
                       Expanded(
                         flex: 2,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: [
-                            IconButton(
-                              onPressed: () => onEdit(index, r),
-                              icon: const Icon(Icons.edit, color: Colors.blue),
-                              tooltip: "Tahrirlash",
-                            ),
-                            IconButton(
-                              onPressed: () => onDelete(index, r),
-                              icon: const Icon(Icons.delete, color: Colors.red),
-                              tooltip: "O‘chirish",
-                            ),
-                          ],
-                        ),
+                        child: Text("QR kod", style: headerStyle),
                       ),
+                      Expanded(flex: 2, child: Text("", style: headerStyle)),
                     ],
                   ),
                 ),
-                Divider(height: 1, color: Colors.grey.shade200),
+                Divider(height: 1, color: Colors.grey.shade300),
+                ...List.generate(rows.length, (index) {
+                  final r = rows[index];
+
+                  return _HoverRow(
+                    child: Column(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                flex: 5,
+                                child: Row(
+                                  children: [
+                                    _ProductImage(path: r.imagePath),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      child: Text(
+                                        r.productName,
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Expanded(
+                                flex: 2,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      "Metr: ${r.metrPrice}",
+                                      style: TextStyle(fontSize: 14),
+                                    ),
+                                    Text(
+                                      "Dona: ${r.donaPrice}",
+                                      style: TextStyle(fontSize: 14),
+                                    ),
+                                    Text(
+                                      "Pachka: ${r.packetPrice}",
+                                      style: TextStyle(fontSize: 14),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Expanded(
+                                flex: 2,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      "Metr: ${r.metri}",
+                                      style: TextStyle(fontSize: 14),
+                                    ),
+                                    Text(
+                                      "Dona: ${r.miqdori}",
+                                      style: TextStyle(fontSize: 14),
+                                    ),
+                                    Text(
+                                      "Pachka: ${r.pachka}",
+                                      style: TextStyle(fontSize: 14),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Expanded(flex: 2, child: Text(r.kelganNarx)),
+                              Expanded(flex: 2, child: Text(r.jamiNarx)),
+                              Expanded(
+                                flex: 2,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      "Metr: ${r.sotilganMetr}",
+                                      style: TextStyle(fontSize: 14),
+                                    ),
+                                    Text(
+                                      'Dona: ${r.sotilganMiqdor}',
+                                      style: TextStyle(fontSize: 14),
+                                    ),
+                                    Text(
+                                      'Pochka: ${r.sotilganPochka}',
+                                      style: TextStyle(fontSize: 14),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Expanded(
+                                flex: 2,
+                                child: IconButton(
+                                  onPressed: () => onQrTap(r),
+                                  icon: const Icon(Icons.qr_code),
+                                ),
+                              ),
+                              Expanded(
+                                flex: 2,
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  children: [
+                                    IconButton(
+                                      onPressed: () => onEdit(index, r),
+                                      icon: const Icon(
+                                        Icons.edit,
+                                        color: Colors.blue,
+                                      ),
+                                      tooltip: "Tahrirlash",
+                                    ),
+                                    IconButton(
+                                      onPressed: () => onDelete(index, r),
+                                      icon: const Icon(
+                                        Icons.delete,
+                                        color: Colors.red,
+                                      ),
+                                      tooltip: "O'chirish",
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Divider(height: 1, color: Colors.grey.shade200),
+                      ],
+                    ),
+                  );
+                }),
               ],
             ),
-          );
-        }),
-      ],
+          ),
+        );
+      },
     );
   }
 }
+
+// ===== Kichik widgetlar =====
 
 class _ProductImage extends StatelessWidget {
   final String path;
@@ -484,11 +604,7 @@ class _ProductImage extends StatelessWidget {
         height: 54,
         color: Colors.grey.shade200,
         alignment: Alignment.center,
-        child: Icon(
-          Icons.image,
-          size: 20,
-          color: Colors.grey.shade600,
-        ),
+        child: Icon(Icons.image, size: 20, color: Colors.grey.shade600),
       );
     }
 
@@ -535,10 +651,11 @@ class _HoverRow extends StatelessWidget {
   }
 }
 
+// ===== Entity -> ProductRow mapper =====
+
 extension ProductEntityMapper on ProductEntity {
   ProductRow toProductRow() {
     return ProductRow(
-      sotildi: sotildi ?? 0,
       id: id,
       productName: nomi,
       metrPrice: narxMetr ?? '',
@@ -552,6 +669,9 @@ extension ProductEntityMapper on ProductEntity {
       imagePath: rasm ?? '',
       qrCodePath: qrKod ?? '',
       createdAt: yaratilgan,
+      sotilganMiqdor: sotilganMiqdor ?? 0,
+      sotilganMetr: sotilganMetr ?? 0,
+      sotilganPochka: sotilganPochka ?? 0,
     );
   }
 }

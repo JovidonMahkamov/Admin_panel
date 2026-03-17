@@ -1,4 +1,3 @@
-
 import 'package:admin_panel/features/workers/domain/entity/get_worker_entity.dart';
 
 class GetWorkerModel extends GetWorkerEntity {
@@ -9,6 +8,7 @@ class GetWorkerModel extends GetWorkerEntity {
     required super.login,
     required super.yaratilgan,
     required super.parol,
+    required super.isActive,
   });
 
   factory GetWorkerModel.fromJson(Map<String, dynamic> json) {
@@ -19,6 +19,7 @@ class GetWorkerModel extends GetWorkerEntity {
       login: json['login'] ?? '',
       parol: json['parol'] ?? '',
       yaratilgan: DateTime.tryParse(json['yaratilgan'] ?? '') ?? DateTime.now(),
+      isActive: json['is_active'] ?? true,
     );
   }
 
@@ -30,6 +31,7 @@ class GetWorkerModel extends GetWorkerEntity {
       'login': login,
       'parol': parol,
       'yaratilgan': yaratilgan.toIso8601String(),
+      'is_active': isActive,
     };
   }
 }

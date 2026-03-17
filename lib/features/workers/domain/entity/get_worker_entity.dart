@@ -5,6 +5,7 @@ class GetWorkerEntity {
   final String login;
   final DateTime yaratilgan;
   final String parol;
+  final bool isActive;
 
   const GetWorkerEntity({
     required this.id,
@@ -13,5 +14,6 @@ class GetWorkerEntity {
     required this.login,
     required this.yaratilgan,
     required this.parol,
+    required this.isActive,
   });
 }

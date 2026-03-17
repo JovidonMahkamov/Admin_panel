@@ -5,6 +5,10 @@ abstract class CustomerEvent {
 class GetAllCustomersE extends CustomerEvent {
   const GetAllCustomersE();
 }
+class GetCustomersE extends CustomerEvent {
+  final int id;
+  const GetCustomersE({required this.id});
+}
 
 class CreateCustomerE extends CustomerEvent {
   final String fish;

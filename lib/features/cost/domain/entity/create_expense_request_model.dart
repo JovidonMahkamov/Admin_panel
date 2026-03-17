@@ -15,7 +15,7 @@ class CreateExpenseRequestModel {
 
   Map<String, dynamic> toJson() {
     return {
-      'ishchi_id_field': ishchiIdField,
+      'ishchi_id': int.tryParse(ishchiIdField) ?? 0,
       'izoh': izoh,
       'sms': sms,
       'summa': summa,

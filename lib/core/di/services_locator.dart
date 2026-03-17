@@ -25,10 +25,12 @@ import 'package:admin_panel/features/customer/domain/repository/customer_reposit
 import 'package:admin_panel/features/customer/domain/usecase/create_customer_use_case.dart';
 import 'package:admin_panel/features/customer/domain/usecase/delete_customer_use_case.dart';
 import 'package:admin_panel/features/customer/domain/usecase/get_all_customers_use_case.dart';
+import 'package:admin_panel/features/customer/domain/usecase/get_customer_detail_use_case.dart';
 import 'package:admin_panel/features/customer/domain/usecase/update_customer_use_case.dart';
 import 'package:admin_panel/features/customer/presentation/bloc/create_customer/create_customer_bloc.dart';
 import 'package:admin_panel/features/customer/presentation/bloc/delete_customer/delete_customer_bloc.dart';
 import 'package:admin_panel/features/customer/presentation/bloc/get_all_customers/get_all_customers_bloc.dart';
+import 'package:admin_panel/features/customer/presentation/bloc/get_customer/get_customer_bloc.dart';
 import 'package:admin_panel/features/customer/presentation/bloc/update_customer/update_customer_bloc.dart';
 import 'package:admin_panel/features/dashboard/data/datasource/dashboard_data_source.dart';
 import 'package:admin_panel/features/dashboard/data/datasource/dashboard_data_source_impl.dart';
@@ -160,6 +162,7 @@ Future<void> setup() async {
   sl.registerLazySingleton(()=>CreateCustomerUseCase(sl()));
   sl.registerLazySingleton(()=>DeleteCustomerUseCase(sl()));
   sl.registerLazySingleton(()=>UpdateCustomerUseCase(sl()));
+  sl.registerLazySingleton(()=>GetCustomerDetailUseCase(sl()));
 
   ///*Dashboard
   sl.registerLazySingleton(()=>GetDashboardUseCase(sl()));
@@ -202,6 +205,7 @@ Future<void> setup() async {
   sl.registerLazySingleton(()=> CreateCustomerBloc(sl()));
   sl.registerLazySingleton(()=> DeleteCustomerBloc(sl()));
   sl.registerLazySingleton(()=> UpdateCustomerBloc(sl()));
+  sl.registerLazySingleton(()=> GetCustomerBloc(sl()));
 
   ///* Dashboard
   sl.registerLazySingleton(()=> GetDashboardBloc(sl()));
