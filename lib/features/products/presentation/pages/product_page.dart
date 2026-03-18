@@ -412,6 +412,10 @@ class ProductsTable extends StatelessWidget {
                   child: Row(
                     children: [
                       Expanded(
+                        flex: 1,
+                        child: Text("S/N", style: headerStyle),
+                      ),
+                      Expanded(
                         flex: 5,
                         child: Text("Tovar Nomi", style: headerStyle),
                       ),
@@ -463,6 +467,13 @@ class ProductsTable extends StatelessWidget {
                                 flex: 5,
                                 child: Row(
                                   children: [
+                                    Expanded(
+                                      flex: 1,
+                                      child: Text(
+                                        (index + 1).toString().padLeft(2, '0'),
+                                        style: const TextStyle(fontWeight: FontWeight.w500),
+                                      ),
+                                    ),
                                     _ProductImage(path: r.imagePath),
                                     const SizedBox(width: 12),
                                     Expanded(
