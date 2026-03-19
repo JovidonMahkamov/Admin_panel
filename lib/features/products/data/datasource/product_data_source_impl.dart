@@ -6,7 +6,7 @@ import 'package:admin_panel/core/utils/logger.dart';
 import 'package:admin_panel/features/products/data/datasource/product_data_source.dart';
 import 'package:admin_panel/features/products/data/model/create_product_response_model.dart';
 import 'package:admin_panel/features/products/data/model/delete_product_model.dart';
-import 'package:admin_panel/features/products/data/model/product_model.dart';
+import 'package:admin_panel/features/products/data/model/product_response_model.dart';
 import 'package:admin_panel/features/products/data/model/update_product_model.dart';
 import 'package:admin_panel/features/products/domain/entity/create_product_params.dart';
 import 'package:dio/dio.dart';
@@ -17,17 +17,11 @@ class ProductDataSourceImpl implements ProductDataSource {
   ProductDataSourceImpl();
 
   @override
-  Future<List<ProductModel>> getProducts() async {
+  Future<ProductResponseModel> getProducts() async {
     try {
       final response = await dioClient.get(ApiUrls.getProducts);
-
       if (response.statusCode == 200 || response.statusCode == 201) {
-        final List<dynamic> dataList =
-            response.data['data'] as List<dynamic>? ?? [];
-
-        return dataList
-            .map((e) => ProductModel.fromJson(e as Map<String, dynamic>))
-            .toList();
+        return ProductResponseModel.fromJson(response.data);
       } else {
         throw Exception('products failed: ${response.statusCode}');
       }
@@ -70,11 +64,7 @@ class ProductDataSourceImpl implements ProductDataSource {
       }
 
       final formData = FormData.fromMap(formMap);
-
-      final response = await dioClient.post(
-        ApiUrls.createProduct,
-        data: formData,
-      );
+      final response = await dioClient.post(ApiUrls.createProduct, data: formData);
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         return CreateProductResponseModel.fromJson(response.data);
@@ -92,14 +82,12 @@ class ProductDataSourceImpl implements ProductDataSource {
     try {
       final response = await dioClient.delete("${ApiUrls.delete}/$id");
       if (response.statusCode == 200 || response.statusCode == 201) {
-        LoggerService.info('statistics successful: ${response.data}');
         return DeleteProductModel.fromJson(response.data);
       } else {
-        LoggerService.warning("statistics failed:${response.statusCode}");
-        throw Exception('statistics failed: ${response.statusCode}');
+        throw Exception('delete failed: ${response.statusCode}');
       }
     } catch (e) {
-      LoggerService.error('Error during user statistics: $e');
+      LoggerService.error('Error during delete product: $e');
       rethrow;
     }
   }
@@ -117,7 +105,7 @@ class ProductDataSourceImpl implements ProductDataSource {
     required String? kelganNarx,
     required String? jamiNarx,
     File? rasm,
-  }) async{
+  }) async {
     try {
       final formData = FormData.fromMap({
         "nomi": nomi,
@@ -131,8 +119,8 @@ class ProductDataSourceImpl implements ProductDataSource {
         if (jamiNarx != null) "jami_narx": jamiNarx,
         if (rasm != null)
           "rasm": await MultipartFile.fromFile(
-            rasm!.path,
-            filename: rasm!.path.split('/').last,
+            rasm.path,
+            filename: rasm.path.split('/').last,
           ),
       });
 
@@ -140,15 +128,14 @@ class ProductDataSourceImpl implements ProductDataSource {
         "${ApiUrls.updateProduct}/$id",
         data: formData,
       );
+
       if (response.statusCode == 200 || response.statusCode == 201) {
-        LoggerService.info('statistics successful: ${response.data}');
         return UpdateProductModel.fromJson(response.data);
       } else {
-        LoggerService.warning("statistics failed:${response.statusCode}");
-        throw Exception('statistics failed: ${response.statusCode}');
+        throw Exception('update failed: ${response.statusCode}');
       }
     } catch (e) {
-      LoggerService.error('Error during user statistics: $e');
+      LoggerService.error('Error during update product: $e');
       rethrow;
     }
   }

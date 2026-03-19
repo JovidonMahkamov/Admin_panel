@@ -16,6 +16,7 @@ abstract class ApiUrls {
 
   ///Dashboard
   static const String getDashboard = '/sotuv/bugun';
+  static const String updateTransfer = '/sotuv/bugun/kochirish';
   static const String finishSales = '/sotuv/yakunlash';
   static const String workerDeail = '/sotuv/oylik/kun/ishchi';
 

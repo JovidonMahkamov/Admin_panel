@@ -4,6 +4,7 @@ import 'package:admin_panel/core/utils/logger.dart';
 import 'package:admin_panel/features/dashboard/data/datasource/dashboard_data_source.dart';
 import 'package:admin_panel/features/dashboard/data/model/dashboard_model.dart';
 import 'package:admin_panel/features/dashboard/data/model/finish_sales_model.dart';
+import 'package:admin_panel/features/dashboard/data/model/transfer_response_model.dart';
 import 'package:admin_panel/features/dashboard/data/model/worker_detail_model.dart';
 
 class DashboardDataSourceImpl implements DashboardDataSource {
@@ -67,6 +68,31 @@ class DashboardDataSourceImpl implements DashboardDataSource {
       if (response.statusCode == 200 || response.statusCode == 201) {
         LoggerService.info('worker detail successful: ${response.data}');
         return WorkerDetailModel.fromJson(response.data);
+      } else {
+        LoggerService.warning("worker detail failed:${response.statusCode}");
+        throw Exception('worker detail failed: ${response.statusCode}');
+      }
+    } catch (e) {
+      LoggerService.error('Error during worker detail: $e');
+      rethrow;
+    }
+  }
+
+  @override
+  Future<TransferResponseModel> updateTransfer({required String dan, required String ga, required num summa}) async{
+    try {
+      final response = await dioClient.patch(
+        ApiUrls.updateTransfer,
+        data: {
+          "dan": dan,
+          "ga": ga,
+          "summa": summa,
+        },
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        LoggerService.info('worker detail successful: ${response.data}');
+        return TransferResponseModel.fromJson(response.data);
       } else {
         LoggerService.warning("worker detail failed:${response.statusCode}");
         throw Exception('worker detail failed: ${response.statusCode}');

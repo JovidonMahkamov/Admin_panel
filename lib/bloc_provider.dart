@@ -9,6 +9,7 @@ import 'package:admin_panel/features/cost/presentation/bloc/update_kassa/update_
 import 'package:admin_panel/features/customer/presentation/bloc/get_customer/get_customer_bloc.dart';
 import 'package:admin_panel/features/dashboard/presentation/bloc/finish_sales/finish_sales_bloc.dart';
 import 'package:admin_panel/features/dashboard/presentation/bloc/get_dashboard/get_dashboard_bloc.dart';
+import 'package:admin_panel/features/dashboard/presentation/bloc/update_transfer/update_transfer_bloc.dart';
 import 'package:admin_panel/features/history/presentation/bloc/get_history/get_history_bloc.dart';
 import 'package:admin_panel/features/monthly_selling/presentation/bloc/finish_monthly_selling/finish_monthly_selling_bloc.dart';
 import 'package:admin_panel/features/products/presentation/bloc/create_product/create_product_bloc.dart';
@@ -65,6 +66,7 @@ class MyBlocProvider extends StatelessWidget {
         BlocProvider<UpdateKassaBloc>(create: (context) => sl<UpdateKassaBloc>()),
         BlocProvider<FinishMonthlySellingBloc>(create: (context) => sl<FinishMonthlySellingBloc>()),
         BlocProvider<GetCustomerBloc>(create: (context) => sl<GetCustomerBloc>()),
+        BlocProvider<UpdateTransferBloc>(create: (context) => sl<UpdateTransferBloc>()),
       ],
       child: child,
     );

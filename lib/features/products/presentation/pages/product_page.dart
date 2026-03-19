@@ -1,3 +1,4 @@
+import 'package:admin_panel/features/products/domain/entity/summary_entity.dart';
 import 'package:admin_panel/features/products/presentation/bloc/products_event.dart';
 import 'package:admin_panel/features/products/presentation/widgets/product_qr_dialog.dart';
 import 'package:flutter/material.dart';
@@ -41,7 +42,6 @@ class _ProductPageState extends State<ProductPage> {
         child: const AddEditProductDialog(title: "Tovar qo'shish"),
       ),
     );
-
     if (!mounted) return;
     context.read<GetProductsBloc>().add(const GetProductsE());
   }
@@ -57,23 +57,21 @@ class _ProductPageState extends State<ProductPage> {
         ],
         child: AddEditProductDialog(
           title: "Tovarni tahrirlash",
-          initial: product, // mavjud ma'lumotlarni uzatamiz
+          initial: product,
         ),
       ),
     );
-
     if (!mounted) return;
     context.read<GetProductsBloc>().add(const GetProductsE());
   }
 
   Future<void> _showQrDialog(ProductRow product) async {
     if (product.qrCodePath.trim().isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text("QR kod topilmadi")));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("QR kod topilmadi")),
+      );
       return;
     }
-
     await showDialog(
       context: context,
       builder: (_) => ProductQrDialog(
@@ -90,9 +88,7 @@ class _ProductPageState extends State<ProductPage> {
       builder: (context) {
         return Dialog(
           backgroundColor: Colors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 520),
             child: Padding(
@@ -106,10 +102,7 @@ class _ProductPageState extends State<ProductPage> {
                       const Expanded(
                         child: Text(
                           "O'chirishni tasdiqlang",
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w800,
-                          ),
+                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
                         ),
                       ),
                       IconButton(
@@ -208,83 +201,97 @@ class _ProductPageState extends State<ProductPage> {
             const SizedBox(height: 18),
             Expanded(
               child: SingleChildScrollView(
-                child: Container(
-                  padding: const EdgeInsets.all(18),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(18),
-                    boxShadow: [
-                      BoxShadow(
-                        blurRadius: 18,
-                        offset: const Offset(0, 10),
-                        color: Colors.black.withOpacity(0.06),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Row(
-                        children: [
-                          const Expanded(
-                            child: Text(
-                              "Tovarlarni boshqarish",
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                          ),
-                          ElevatedWidget(
-                            onPressed: _openAddProductDialog,
-                            text: "Tovar qo'shish",
-                            backgroundColor: Colors.blueAccent,
-                            textColor: Colors.white,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // ===== SUMMARY KARTOCHKALAR =====
+                    BlocBuilder<GetProductsBloc, GetProductsState>(
+                      builder: (context, state) {
+                        if (state is GetProductsSuccess) {
+                          return _SummarySection(summary: state.productData.summary);
+                        }
+                        return const SizedBox.shrink();
+                      },
+                    ),
+                    const SizedBox(height: 16),
+
+                    // ===== TOVARLAR JADVALI =====
+                    Container(
+                      padding: const EdgeInsets.all(18),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(18),
+                        boxShadow: [
+                          BoxShadow(
+                            blurRadius: 18,
+                            offset: const Offset(0, 10),
+                            color: Colors.black.withOpacity(0.06),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 14),
-                      const Divider(height: 1),
-                      const SizedBox(height: 10),
-                      BlocBuilder<GetProductsBloc, GetProductsState>(
-                        builder: (context, state) {
-                          if (state is GetProductsLoading) {
-                            return const Padding(
-                              padding: EdgeInsets.all(40),
-                              child: Center(child: CircularProgressIndicator()),
-                            );
-                          }
-                          if (state is GetProductsError) {
-                            return Padding(
-                              padding: const EdgeInsets.all(24),
-                              child: Center(child: Text(state.message)),
-                            );
-                          }
-                          if (state is GetProductsSuccess) {
-                            final rows = state.productEntity
-                                .map((e) => e.toProductRow())
-                                .toList();
-
-                            if (rows.isEmpty) {
-                              return const Padding(
-                                padding: EdgeInsets.all(24),
-                                child: Center(
-                                  child: Text("Tovarlar topilmadi"),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Row(
+                            children: [
+                              const Expanded(
+                                child: Text(
+                                  "Tovarlarni boshqarish",
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w700,
+                                  ),
                                 ),
-                              );
-                            }
-                            return ProductsTable(
-                              rows: rows,
-                              onEdit: (i, p) => _openEditProductDialog(i, p),
-                              onDelete: (i, p) => _confirmDelete(i, p),
-                              onQrTap: (p) => _showQrDialog(p),
-                            );
-                          }
-                          return const SizedBox.shrink();
-                        },
+                              ),
+                              ElevatedWidget(
+                                onPressed: _openAddProductDialog,
+                                text: "Tovar qo'shish",
+                                backgroundColor: Colors.blueAccent,
+                                textColor: Colors.white,
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 14),
+                          const Divider(height: 1),
+                          const SizedBox(height: 10),
+                          BlocBuilder<GetProductsBloc, GetProductsState>(
+                            builder: (context, state) {
+                              if (state is GetProductsLoading) {
+                                return const Padding(
+                                  padding: EdgeInsets.all(40),
+                                  child: Center(child: CircularProgressIndicator()),
+                                );
+                              }
+                              if (state is GetProductsError) {
+                                return Padding(
+                                  padding: const EdgeInsets.all(24),
+                                  child: Center(child: Text(state.message)),
+                                );
+                              }
+                              if (state is GetProductsSuccess) {
+                                final rows = state.productEntity
+                                    .map((e) => e.toProductRow())
+                                    .toList();
+                                if (rows.isEmpty) {
+                                  return const Padding(
+                                    padding: EdgeInsets.all(24),
+                                    child: Center(child: Text("Tovarlar topilmadi")),
+                                  );
+                                }
+                                return ProductsTable(
+                                  rows: rows,
+                                  onEdit: (i, p) => _openEditProductDialog(i, p),
+                                  onDelete: (i, p) => _confirmDelete(i, p),
+                                  onQrTap: (p) => _showQrDialog(p),
+                                );
+                              }
+                              return const SizedBox.shrink();
+                            },
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -294,6 +301,142 @@ class _ProductPageState extends State<ProductPage> {
     );
   }
 }
+
+// ===== SUMMARY SECTION =====
+
+class _SummarySection extends StatelessWidget {
+  final SummaryEntity summary;
+
+  const _SummarySection({required this.summary});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: [
+          BoxShadow(
+            blurRadius: 18,
+            offset: const Offset(0, 10),
+            color: Colors.black.withOpacity(0.06),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            "Umumiy hisobot",
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+          ),
+          const SizedBox(height: 14),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final cards = [
+                _SummaryCard(
+                  icon: Icons.monetization_on_outlined,
+                  label: "Jami narx",
+                  value: "${summary.jamiNarx.toStringAsFixed(2)}\$",
+                  color: const Color(0xFF0B74E5),
+                ),
+                _SummaryCard(
+                  icon: Icons.straighten,
+                  label: "Jami metr",
+                  value: "${summary.jamiMetr.toStringAsFixed(2)} m",
+                  color: const Color(0xFF16A34A),
+                ),
+                _SummaryCard(
+                  icon: Icons.confirmation_number_outlined,
+                  label: "Jami dona",
+                  value: "${summary.jamiMiqdor} ta",
+                  color: const Color(0xFFD97706),
+                ),
+                _SummaryCard(
+                  icon: Icons.inventory_2_outlined,
+                  label: "Jami pachka",
+                  value: "${summary.jamiPochka} ta",
+                  color: const Color(0xFF7C3AED),
+                ),
+                _SummaryCard(
+                  icon: Icons.category_outlined,
+                  label: "Tovarlar soni",
+                  value: "${summary.tovarlarSoni} xil",
+                  color: const Color(0xFFDB2777),
+                ),
+              ];
+
+              final itemWidth = constraints.maxWidth < 600
+                  ? (constraints.maxWidth - 12) / 2
+                  : (constraints.maxWidth - 48) / 5;
+
+              return Wrap(
+                spacing: 12,
+                runSpacing: 12,
+                children: cards
+                    .map((c) => SizedBox(width: itemWidth < 120 ? double.infinity : itemWidth, child: c))
+                    .toList(),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SummaryCard extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
+  final Color color;
+
+  const _SummaryCard({
+    required this.icon,
+    required this.label,
+    required this.value,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: color.withOpacity(0.2)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, color: color, size: 22),
+          const SizedBox(height: 8),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              color: Colors.grey.shade600,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              color: color,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ===== ProductRow =====
 
 class ProductRow {
   final int id;
@@ -345,7 +488,6 @@ class ProductRow {
     String? jamiNarx,
     String? imagePath,
     String? qrCodePath,
-    int? sotildi,
     DateTime? createdAt,
     int? sotilganMiqdor,
     double? sotilganMetr,
@@ -398,9 +540,7 @@ class ProductsTable extends StatelessWidget {
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final tableWidth = constraints.maxWidth < 1100
-            ? 1100.0
-            : constraints.maxWidth;
+        final tableWidth = constraints.maxWidth < 1100 ? 1100.0 : constraints.maxWidth;
         return SingleChildScrollView(
           scrollDirection: Axis.horizontal,
           child: SizedBox(
@@ -411,43 +551,20 @@ class ProductsTable extends StatelessWidget {
                   padding: const EdgeInsets.symmetric(vertical: 12),
                   child: Row(
                     children: [
-                      Expanded(
-                        flex: 1,
-                        child: Text("S/N", style: headerStyle),
-                      ),
-                      Expanded(
-                        flex: 5,
-                        child: Text("Tovar Nomi", style: headerStyle),
-                      ),
-                      Expanded(
-                        flex: 2,
-                        child: Text("Narxi", style: headerStyle),
-                      ),
-                      Expanded(
-                        flex: 2,
-                        child: Text("Miqdor", style: headerStyle),
-                      ),
-                      Expanded(
-                        flex: 2,
-                        child: Text("Kelgan narx", style: headerStyle),
-                      ),
-                      Expanded(
-                        flex: 2,
-                        child: Text("Jami narx", style: headerStyle),
-                      ),
+                      Expanded(flex: 1, child: Text("S/N", style: headerStyle)),
+                      Expanded(flex: 5, child: Text("Tovar Nomi", style: headerStyle)),
+                      Expanded(flex: 2, child: Text("Narxi", style: headerStyle)),
+                      Expanded(flex: 2, child: Text("Miqdor", style: headerStyle)),
+                      Expanded(flex: 2, child: Text("Kelgan narx", style: headerStyle)),
+                      Expanded(flex: 2, child: Text("Jami narx", style: headerStyle)),
                       Expanded(
                         flex: 2,
                         child: Text(
                           "Sotildi",
-                          style: headerStyle.copyWith(
-                            color: Colors.red.shade700,
-                          ),
+                          style: headerStyle.copyWith(color: Colors.red.shade700),
                         ),
                       ),
-                      Expanded(
-                        flex: 2,
-                        child: Text("QR kod", style: headerStyle),
-                      ),
+                      Expanded(flex: 2, child: Text("QR kod", style: headerStyle)),
                       Expanded(flex: 2, child: Text("", style: headerStyle)),
                     ],
                   ),
@@ -455,7 +572,6 @@ class ProductsTable extends StatelessWidget {
                 Divider(height: 1, color: Colors.grey.shade300),
                 ...List.generate(rows.length, (index) {
                   final r = rows[index];
-
                   return _HoverRow(
                     child: Column(
                       children: [
@@ -479,9 +595,7 @@ class ProductsTable extends StatelessWidget {
                                     Expanded(
                                       child: Text(
                                         r.productName,
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.w500,
-                                        ),
+                                        style: const TextStyle(fontWeight: FontWeight.w500),
                                         overflow: TextOverflow.ellipsis,
                                       ),
                                     ),
@@ -493,18 +607,9 @@ class ProductsTable extends StatelessWidget {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(
-                                      "Metr: ${r.metrPrice}",
-                                      style: TextStyle(fontSize: 14),
-                                    ),
-                                    Text(
-                                      "Dona: ${r.donaPrice}",
-                                      style: TextStyle(fontSize: 14),
-                                    ),
-                                    Text(
-                                      "Pachka: ${r.packetPrice}",
-                                      style: TextStyle(fontSize: 14),
-                                    ),
+                                    Text("Metr: ${r.metrPrice}", style: const TextStyle(fontSize: 14)),
+                                    Text("Dona: ${r.donaPrice}", style: const TextStyle(fontSize: 14)),
+                                    Text("Pachka: ${r.packetPrice}", style: const TextStyle(fontSize: 14)),
                                   ],
                                 ),
                               ),
@@ -513,18 +618,9 @@ class ProductsTable extends StatelessWidget {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(
-                                      "Metr: ${r.metri}",
-                                      style: TextStyle(fontSize: 14),
-                                    ),
-                                    Text(
-                                      "Dona: ${r.miqdori}",
-                                      style: TextStyle(fontSize: 14),
-                                    ),
-                                    Text(
-                                      "Pachka: ${r.pachka}",
-                                      style: TextStyle(fontSize: 14),
-                                    ),
+                                    Text("Metr: ${r.metri}", style: const TextStyle(fontSize: 14)),
+                                    Text("Dona: ${r.miqdori}", style: const TextStyle(fontSize: 14)),
+                                    Text("Pachka: ${r.pachka}", style: const TextStyle(fontSize: 14)),
                                   ],
                                 ),
                               ),
@@ -535,18 +631,9 @@ class ProductsTable extends StatelessWidget {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(
-                                      "Metr: ${r.sotilganMetr}",
-                                      style: TextStyle(fontSize: 14),
-                                    ),
-                                    Text(
-                                      'Dona: ${r.sotilganMiqdor}',
-                                      style: TextStyle(fontSize: 14),
-                                    ),
-                                    Text(
-                                      'Pochka: ${r.sotilganPochka}',
-                                      style: TextStyle(fontSize: 14),
-                                    ),
+                                    Text("Metr: ${r.sotilganMetr}", style: const TextStyle(fontSize: 14)),
+                                    Text('Dona: ${r.sotilganMiqdor}', style: const TextStyle(fontSize: 14)),
+                                    Text('Pochka: ${r.sotilganPochka}', style: const TextStyle(fontSize: 14)),
                                   ],
                                 ),
                               ),
@@ -564,18 +651,12 @@ class ProductsTable extends StatelessWidget {
                                   children: [
                                     IconButton(
                                       onPressed: () => onEdit(index, r),
-                                      icon: const Icon(
-                                        Icons.edit,
-                                        color: Colors.blue,
-                                      ),
+                                      icon: const Icon(Icons.edit, color: Colors.blue),
                                       tooltip: "Tahrirlash",
                                     ),
                                     IconButton(
                                       onPressed: () => onDelete(index, r),
-                                      icon: const Icon(
-                                        Icons.delete,
-                                        color: Colors.red,
-                                      ),
+                                      icon: const Icon(Icons.delete, color: Colors.red),
                                       tooltip: "O'chirish",
                                     ),
                                   ],
@@ -598,8 +679,6 @@ class ProductsTable extends StatelessWidget {
   }
 }
 
-// ===== Kichik widgetlar =====
-
 class _ProductImage extends StatelessWidget {
   final String path;
 
@@ -608,7 +687,6 @@ class _ProductImage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final imageUrl = ProductMediaHelper.fullUrl(path);
-
     if (imageUrl.isEmpty) {
       return Container(
         width: 54,
@@ -618,7 +696,6 @@ class _ProductImage extends StatelessWidget {
         child: Icon(Icons.image, size: 20, color: Colors.grey.shade600),
       );
     }
-
     return ClipRRect(
       borderRadius: BorderRadius.circular(10),
       child: Image.network(
@@ -632,11 +709,7 @@ class _ProductImage extends StatelessWidget {
             height: 54,
             color: Colors.grey.shade200,
             alignment: Alignment.center,
-            child: Icon(
-              Icons.broken_image,
-              size: 20,
-              color: Colors.grey.shade600,
-            ),
+            child: Icon(Icons.broken_image, size: 20, color: Colors.grey.shade600),
           );
         },
       ),
@@ -661,8 +734,6 @@ class _HoverRow extends StatelessWidget {
     );
   }
 }
-
-// ===== Entity -> ProductRow mapper =====
 
 extension ProductEntityMapper on ProductEntity {
   ProductRow toProductRow() {

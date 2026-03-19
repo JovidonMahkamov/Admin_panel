@@ -38,9 +38,11 @@ import 'package:admin_panel/features/dashboard/data/repository/dashboard_reposit
 import 'package:admin_panel/features/dashboard/domain/repository/dashboard_repositories.dart';
 import 'package:admin_panel/features/dashboard/domain/usecase/finish_sales_use_case.dart';
 import 'package:admin_panel/features/dashboard/domain/usecase/get_dashboard_use_case.dart';
+import 'package:admin_panel/features/dashboard/domain/usecase/update_transfer_use_case.dart';
 import 'package:admin_panel/features/dashboard/domain/usecase/worker_detail_use_case.dart';
 import 'package:admin_panel/features/dashboard/presentation/bloc/finish_sales/finish_sales_bloc.dart';
 import 'package:admin_panel/features/dashboard/presentation/bloc/get_dashboard/get_dashboard_bloc.dart';
+import 'package:admin_panel/features/dashboard/presentation/bloc/update_transfer/update_transfer_bloc.dart';
 import 'package:admin_panel/features/dashboard/presentation/bloc/worker_detail/worker_detail_bloc.dart';
 import 'package:admin_panel/features/history/data/datasource/history_data_source.dart';
 import 'package:admin_panel/features/history/data/datasource/history_data_source_impl.dart';
@@ -168,6 +170,7 @@ Future<void> setup() async {
   sl.registerLazySingleton(()=>GetDashboardUseCase(sl()));
   sl.registerLazySingleton(()=>FinishSalesUseCase(sl()));
   sl.registerLazySingleton(()=>WorkerDetailUseCase(sl()));
+  sl.registerLazySingleton(()=>UpdateTransferUseCase(sl()));
 
   ///*Products
   sl.registerLazySingleton(()=>GetProductUseCase(sl()));
@@ -211,6 +214,7 @@ Future<void> setup() async {
   sl.registerLazySingleton(()=> GetDashboardBloc(sl()));
   sl.registerLazySingleton(()=> FinishSalesBloc(sl()));
   sl.registerLazySingleton(()=> WorkerDetailBloc(sl()));
+  sl.registerLazySingleton(()=> UpdateTransferBloc(sl()));
 
   ///* Products
   sl.registerLazySingleton(()=> GetProductsBloc(sl()));

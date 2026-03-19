@@ -34,7 +34,7 @@ class CustomerDataSourceImpl implements CustomerDataSource {
   @override
   Future<DeleteCustomerResponseModel> deleteCustomer({required int id}) async {
     try {
-      final response = await dioClient.delete("ApiUrls.deleteCustomer/$id");
+      final response = await dioClient.delete("${ApiUrls.deleteCustomer}$id");
       if (response.statusCode == 200 || response.statusCode == 201) {
         LoggerService.info('statistics successful: ${response.data}');
         return DeleteCustomerResponseModel.fromJson(response.data);

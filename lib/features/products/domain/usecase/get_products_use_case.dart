@@ -1,4 +1,4 @@
-import 'package:admin_panel/features/products/domain/entity/product_entity.dart';
+import 'package:admin_panel/features/products/domain/entity/product_response_entity.dart';
 import 'package:admin_panel/features/products/domain/repository/product_repositories.dart';
 
 class GetProductUseCase {
@@ -6,7 +6,7 @@ class GetProductUseCase {
 
   GetProductUseCase(this.repository);
 
-  Future<List<ProductEntity>> call() async {
+  Future<ProductResponseEntity> call() async {
     return await repository.getProducts();
   }
 }

@@ -1,4 +1,6 @@
 import 'package:admin_panel/features/customer/presentation/bloc/create_customer/create_customer_state.dart';
+import 'package:admin_panel/features/customer/presentation/bloc/delete_customer/delete_customer_bloc.dart';
+import 'package:admin_panel/features/customer/presentation/bloc/delete_customer/delete_customer_state.dart';
 import 'package:admin_panel/features/customer/presentation/bloc/get_customer/get_customer_bloc.dart';
 import 'package:admin_panel/features/customer/presentation/bloc/update_customer/update_customer_state.dart';
 import 'package:admin_panel/features/dashboard/presentation/widgets/elvated_button_wg.dart';
@@ -74,6 +76,63 @@ class _CustomerPageState extends State<CustomerPage> {
     );
   }
 
+  // --- DELETE DIALOG ---
+  void _openDeleteCustomerDialog(GetCustomerEntity customer) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Row(
+          children: [
+            Icon(Icons.warning_amber_rounded, color: Colors.red, size: 28),
+            SizedBox(width: 10),
+            Text(
+              "O'chirishni tasdiqlang",
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
+            ),
+          ],
+        ),
+        content: RichText(
+          text: TextSpan(
+            style: const TextStyle(fontSize: 15, color: Colors.black87),
+            children: [
+              TextSpan(text: "\"${customer.fish}\" "),
+              const TextSpan(
+                text: "mijozini o'chirishni xohlaysizmi?\n\nBu amalni qaytarib bo'lmaydi.",
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text(
+              "Bekor qilish",
+              style: TextStyle(color: Colors.grey, fontSize: 15),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              context
+                  .read<DeleteCustomerBloc>()
+                  .add(DeleteCustomerE(id: customer.id));
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            child: const Text("O'chirish"),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _openCreateCustomerDialog() {
     showDialog(
       context: context,
@@ -81,7 +140,6 @@ class _CustomerPageState extends State<CustomerPage> {
         value: context.read<CreateCustomerBloc>(),
         child: CreateCustomerDialog(
           onSave: (customer) {
-            // Customer yaratish eventi
             context.read<CreateCustomerBloc>().add(
               CreateCustomerE(
                 createCustomer: CreateCustomerRequestEntity(
@@ -92,8 +150,6 @@ class _CustomerPageState extends State<CustomerPage> {
                 ),
               ),
             );
-
-            // BlocListener orqali muvaffaqiyatni kutamiz
           },
         ),
       ),
@@ -107,24 +163,18 @@ class _CustomerPageState extends State<CustomerPage> {
       child: BlocListener<CreateCustomerBloc, CreateCustomerState>(
         listener: (context, state) {
           if (state is CreateCustomerSuccess) {
-            // Dialogni yopish
             Navigator.pop(context);
-
-            // UI yangilash
             context.read<GetAllCustomersBloc>().add(GetAllCustomersE());
-
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text("Mijoz muvaffaqiyatli qo‘shildi")),
+              const SnackBar(content: Text("Mijoz muvaffaqiyatli qo'shildi")),
             );
           }
-
           if (state is CreateCustomerError) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text("Xatolik: ${state.message}")),
             );
           }
         },
-
         child: BlocListener<UpdateCustomerBloc, UpdateCustomerState>(
           listener: (context, state) {
             if (state is UpdateCustomersSuccess) {
@@ -140,99 +190,122 @@ class _CustomerPageState extends State<CustomerPage> {
               );
             }
           },
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const SizedBox(height: 18),
-              Expanded(
-                child: SingleChildScrollView(
-                  child: Container(
-                    padding: const EdgeInsets.all(18),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(18),
-                      boxShadow: [
-                        BoxShadow(
-                          blurRadius: 18,
-                          offset: const Offset(0, 10),
-                          color: Colors.black.withOpacity(0.06),
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Row(
-                          children: [
-                            const Expanded(
-                              child: Text(
-                                "Mijozlar",
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w700,
+          // --- DELETE BLOC LISTENER ---
+          child: BlocListener<DeleteCustomerBloc, DeleteCustomerState>(
+            listener: (context, state) {
+              if (state is DeleteCustomerSuccess) {
+                context.read<GetAllCustomersBloc>().add(GetAllCustomersE());
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text("Mijoz muvaffaqiyatli o'chirildi"),
+                    backgroundColor: Colors.green,
+                  ),
+                );
+              }
+              if (state is DeleteCustomerError) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text("Xatolik: ${state.message}"),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+              }
+            },
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const SizedBox(height: 18),
+                Expanded(
+                  child: SingleChildScrollView(
+                    child: Container(
+                      padding: const EdgeInsets.all(18),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(18),
+                        boxShadow: [
+                          BoxShadow(
+                            blurRadius: 18,
+                            offset: const Offset(0, 10),
+                            color: Colors.black.withOpacity(0.06),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Row(
+                            children: [
+                              const Expanded(
+                                child: Text(
+                                  "Mijozlar",
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.w700,
+                                  ),
                                 ),
                               ),
-                            ),
-        
-                            ElevatedWidget(
-                              size: 180,
-                              text: "Mijoz qo‘shish",
-                              backgroundColor: Colors.blue,
-                              textColor: Colors.white,
-                              onPressed: _openCreateCustomerDialog,
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 14),
-                        const Divider(height: 1),
-                        const SizedBox(height: 10),
-        
-                        BlocBuilder<GetAllCustomersBloc,
-                            GetAllCustomersState>(
-                          builder: (context, state) {
-                            if (state is GetAllCustomersLoading) {
-                              return const Center(
-                                child: CircularProgressIndicator(),
-                              );
-                            }
-        
-                            if (state is GetAllCustomersError) {
-                              return Center(
-                                child: Text(
-                                  state.message,
-                                  style:
-                                  const TextStyle(color: Colors.red),
-                                ),
-                              );
-                            }
-        
-                            if (state is GetAllCustomersSuccess) {
-                              final rows =
-                                  state.getAllCustomersEntity.data;
-        
-                              if (rows.isEmpty) {
+                              ElevatedWidget(
+                                size: 180,
+                                text: "Mijoz qo'shish",
+                                backgroundColor: Colors.blue,
+                                textColor: Colors.white,
+                                onPressed: _openCreateCustomerDialog,
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 14),
+                          const Divider(height: 1),
+                          const SizedBox(height: 10),
+
+                          BlocBuilder<GetAllCustomersBloc,
+                              GetAllCustomersState>(
+                            builder: (context, state) {
+                              if (state is GetAllCustomersLoading) {
                                 return const Center(
-                                  child: Text("Mijozlar mavjud emas"),
+                                  child: CircularProgressIndicator(),
                                 );
                               }
-        
-                              return _CustomerTable(
-                                rows: rows,
-                                onEdit: (index, customer) =>
-                                    _openEditCustomerDialog(customer),
-                                onRowTap: _openCustomerDetails,
-                              );
-                            }
-        
-                            return const SizedBox.shrink();
-                          },
-                        ),
-                      ],
+
+                              if (state is GetAllCustomersError) {
+                                return Center(
+                                  child: Text(
+                                    state.message,
+                                    style:
+                                    const TextStyle(color: Colors.red),
+                                  ),
+                                );
+                              }
+
+                              if (state is GetAllCustomersSuccess) {
+                                final rows =
+                                    state.getAllCustomersEntity.data;
+
+                                if (rows.isEmpty) {
+                                  return const Center(
+                                    child: Text("Mijozlar mavjud emas"),
+                                  );
+                                }
+
+                                return _CustomerTable(
+                                  rows: rows,
+                                  onEdit: (index, customer) =>
+                                      _openEditCustomerDialog(customer),
+                                  onDelete: (customer) =>
+                                      _openDeleteCustomerDialog(customer),
+                                  onRowTap: _openCustomerDetails,
+                                );
+                              }
+
+                              return const SizedBox.shrink();
+                            },
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -243,11 +316,13 @@ class _CustomerPageState extends State<CustomerPage> {
 class _CustomerTable extends StatelessWidget {
   final List<GetCustomerEntity> rows;
   final void Function(int index, GetCustomerEntity customer) onEdit;
+  final void Function(GetCustomerEntity customer) onDelete;
   final ValueChanged<GetCustomerEntity> onRowTap;
 
   const _CustomerTable({
     required this.rows,
     required this.onEdit,
+    required this.onDelete,
     required this.onRowTap,
   });
 
@@ -301,14 +376,29 @@ class _CustomerTable extends StatelessWidget {
                           child: Text(r.qarzdorlik.toString())),
                       Expanded(
                         flex: 2,
-                        child: GestureDetector(
-                          behavior: HitTestBehavior.opaque,
-                          onTap: () => onEdit(index, r),
-                          child: const Padding(
-                            padding: EdgeInsets.all(6),
-                            child:
-                            Icon(Icons.edit, color: Colors.blue),
-                          ),
+                        child: Row(
+                          children: [
+                            // Edit tugmasi
+                            GestureDetector(
+                              behavior: HitTestBehavior.opaque,
+                              onTap: () => onEdit(index, r),
+                              child: const Padding(
+                                padding: EdgeInsets.all(6),
+                                child: Icon(Icons.edit, color: Colors.blue),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            // Delete tugmasi
+                            GestureDetector(
+                              behavior: HitTestBehavior.opaque,
+                              onTap: () => onDelete(r),
+                              child: const Padding(
+                                padding: EdgeInsets.all(6),
+                                child: Icon(Icons.delete_outline,
+                                    color: Colors.red),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ],
