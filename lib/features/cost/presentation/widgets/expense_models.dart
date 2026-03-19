@@ -10,16 +10,14 @@ extension PaymentTypeX on PaymentType {
   };
 }
 
-enum CurrencyType { uzs, usd }
+enum CurrencyType {usd }
 
 extension CurrencyTypeX on CurrencyType {
   String get label => switch (this) {
-    CurrencyType.uzs => 'UZS',
     CurrencyType.usd => r'$',
   };
 
   String get symbol => switch (this) {
-    CurrencyType.uzs => "so'm",
     CurrencyType.usd => r"$",
   };
 }
@@ -40,18 +38,13 @@ class ExpenseRowData {
   final String id;
   final DateTime sana;
   final PaymentType paymentType;
-
   final String workerId;
   final String workerName;
   final String workerPhone;
-
-  final int summa;
-  final CurrencyType currency;
-
+  final double summa;
   final bool convertatsiya;
   final bool foyda;
   final bool sms;
-
   final String izoh;
 
   const ExpenseRowData({
@@ -62,7 +55,6 @@ class ExpenseRowData {
     required this.workerName,
     required this.workerPhone,
     required this.summa,
-    required this.currency,
     required this.convertatsiya,
     required this.foyda,
     required this.sms,
@@ -75,7 +67,7 @@ class ExpenseRowData {
     String? workerId,
     String? workerName,
     String? workerPhone,
-    int? summa,
+    double? summa,
     CurrencyType? currency,
     bool? convertatsiya,
     bool? foyda,
@@ -90,7 +82,6 @@ class ExpenseRowData {
       workerName: workerName ?? this.workerName,
       workerPhone: workerPhone ?? this.workerPhone,
       summa: summa ?? this.summa,
-      currency: currency ?? this.currency,
       convertatsiya: convertatsiya ?? this.convertatsiya,
       foyda: foyda ?? this.foyda,
       sms: sms ?? this.sms,
@@ -102,7 +93,7 @@ class ExpenseRowData {
 class ExpenseFormResult {
   final PaymentType paymentType;
   final String workerId;
-  final int summa;
+  final double summa;
   final CurrencyType currency;
   final bool convertatsiya;
   final bool foyda;
@@ -121,16 +112,10 @@ class ExpenseFormResult {
   });
 }
 
-/// helpers
-String formatDate(DateTime date) {
-  final d = date.day.toString().padLeft(2, '0');
-  final m = date.month.toString().padLeft(2, '0');
-  final y = date.year.toString();
-  return '$d.$m.$y';
-}
-
-String formatAmount(int value) {
-  final s = value.toString();
+/// Raqamni formatlaydi: 12563.5 -> "12 563.5"
+String formatAmount(num value) {
+  final intPart = value.truncate().toInt().abs();
+  final s = intPart.toString();
   final buffer = StringBuffer();
   int count = 0;
   for (int i = s.length - 1; i >= 0; i--) {
@@ -138,7 +123,21 @@ String formatAmount(int value) {
     count++;
     if (count % 3 == 0 && i != 0) buffer.write(' ');
   }
-  return buffer.toString().split('').reversed.join();
+  final formattedInt = buffer.toString().split('').reversed.join();
+  // Qoldiq qismi bo'lsa ko'rsatamiz
+  final doubleVal = value.toDouble();
+  if (doubleVal != doubleVal.truncateToDouble()) {
+    final dec = doubleVal.toStringAsFixed(2).split('.').last;
+    return '$formattedInt.$dec';
+  }
+  return formattedInt;
+}
+
+String formatDate(DateTime date) {
+  final d = date.day.toString().padLeft(2, '0');
+  final m = date.month.toString().padLeft(2, '0');
+  final y = date.year.toString();
+  return '$d.$m.$y';
 }
 
 InputDecoration dialogInputDecoration({required String hintText}) {

@@ -44,4 +44,13 @@ abstract class ApiUrls {
   static const String postKassa = '/xarajat/kassa';
   static const String deleteKassa = '/xarajat/kassa/';
   static const String updateKassa = '/xarajat/kassa/';
+
+  ///DokonChiqim
+  static const String getDokonChiqim = '/dokon-chiqim/';
+  static const String postDokonChiqim = '/dokon-chiqim/';
+  static const String patchDokonChiqim = '/dokon-chiqim/';
+  static const String deleteDokonChiqim = '/dokon-chiqim/';
+
+  ///Balans
+  static const String getBalans = '/balans/';
 }

@@ -32,29 +32,20 @@ class _HarajatChiqimPageState extends State<HarajatChiqimPage> {
   @override
   void initState() {
     super.initState();
-    // Sahifa ochilganda workerlar va harajatlarni yuklaymiz
     context.read<GetAllWorkerBloc>().add(const GetAllWorkerE());
     context.read<GetHarajatBloc>().add(const GetHarajatE());
   }
 
-  // Workerlarni BlocState dan olamiz
-  // GetAllWorkersEntity.data — List<GetWorkerEntity>
   List<WorkerOption> _getWorkers(BuildContext context) {
     final state = context.read<GetAllWorkerBloc>().state;
     if (state is GetAllWorkerSuccess) {
       return state.getAllWorkersEntity.data
-          .map((w) => WorkerOption(
-        id: w.id.toString(),
-        name: w.fish,
-        phone: w.telefon,
-      ))
+          .map((w) => WorkerOption(id: w.id.toString(), name: w.fish, phone: w.telefon))
           .toList();
     }
     return [];
   }
 
-  // API dan kelgan harajatlarni ExpenseRowData ga o'giramiz
-  // CostEntity.data — List<CostItemEntity>
   List<ExpenseRowData> _buildRows(GetHarajatState state) {
     if (state is GetHarajatSuccess) {
       return state.costEntity.data.map((e) {
@@ -69,7 +60,6 @@ class _HarajatChiqimPageState extends State<HarajatChiqimPage> {
           default:
             paymentType = PaymentType.naqd;
         }
-
         return ExpenseRowData(
           id: e.id.toString(),
           sana: DateTime.tryParse(e.sana) ?? DateTime.now(),
@@ -77,8 +67,7 @@ class _HarajatChiqimPageState extends State<HarajatChiqimPage> {
           workerId: e.ishchiIdField,
           workerName: e.ishchiFish.isNotEmpty ? e.ishchiFish : e.ishchiIdField,
           workerPhone: '',
-          summa: e.summa.toInt(),
-          currency: CurrencyType.uzs,
+          summa: e.summa.toDouble(),
           convertatsiya: false,
           foyda: false,
           sms: e.sms,
@@ -103,34 +92,26 @@ class _HarajatChiqimPageState extends State<HarajatChiqimPage> {
   Future<void> onAdd(List<WorkerOption> workers) async {
     if (workers.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text("Ishchilar yuklanmadi, qayta urinib ko'ring")),
+        const SnackBar(content: Text("Ishchilar yuklanmadi, qayta urinib ko'ring")),
       );
       return;
     }
-
     final result = await showDialog<ExpenseFormResult>(
       context: context,
       barrierDismissible: true,
-      builder: (_) => ExpenseFormDialogWg(
-        title: "Yangi chiqim qo'shish",
-        workers: workers,
-      ),
+      builder: (_) => ExpenseFormDialogWg(title: "Yangi chiqim qo'shish", workers: workers),
     );
-
     if (result == null || !mounted) return;
 
-    context.read<PostCostBloc>().add(
-      PostHarajatE(
-        request: CreateExpenseRequestModel(
-          ishchiIdField: result.workerId,
-          izoh: result.izoh.trim().isEmpty ? '-' : result.izoh.trim(),
-          sms: result.sms,
-          summa: result.summa,
-          tolovTuri: result.paymentType.name,
-        ),
+    context.read<PostCostBloc>().add(PostHarajatE(
+      request: CreateExpenseRequestModel(
+        ishchiIdField: result.workerId,
+        izoh: result.izoh.trim().isEmpty ? '-' : result.izoh.trim(),
+        sms: result.sms,
+        summa: result.summa,
+        tolovTuri: result.paymentType.name,
       ),
-    );
+    ));
   }
 
   Future<void> onEdit(ExpenseRowData row, List<WorkerOption> workers) async {
@@ -143,19 +124,16 @@ class _HarajatChiqimPageState extends State<HarajatChiqimPage> {
         initial: row,
       ),
     );
-
     if (result == null || !mounted) return;
 
-    context.read<UpdateHarajatBloc>().add(
-      UpdateHarajatE(
-        id: int.tryParse(row.id) ?? 0,
-        ishchiId: int.tryParse(result.workerId) ?? 0,
-        izoh: result.izoh.trim().isEmpty ? '-' : result.izoh.trim(),
-        sms: result.sms,
-        summa: result.summa,
-        tolovTuri: result.paymentType.name,
-      ),
-    );
+    context.read<UpdateHarajatBloc>().add(UpdateHarajatE(
+      id: int.tryParse(row.id) ?? 0,
+      ishchiId: int.tryParse(result.workerId) ?? 0,
+      izoh: result.izoh.trim().isEmpty ? '-' : result.izoh.trim(),
+      sms: result.sms,
+      summa: result.summa,
+      tolovTuri: result.paymentType.name,
+    ));
   }
 
   Future<void> onDelete(ExpenseRowData row) async {
@@ -164,61 +142,45 @@ class _HarajatChiqimPageState extends State<HarajatChiqimPage> {
       barrierDismissible: true,
       builder: (_) => const ExpenseDeleteDialogWg(),
     );
-
     if (ok != true || !mounted) return;
-
-    context.read<DeleteHarajatBloc>().add(
-      DeleteHarajatE(id: int.tryParse(row.id) ?? 0),
-    );
+    context.read<DeleteHarajatBloc>().add(DeleteHarajatE(id: int.tryParse(row.id) ?? 0));
   }
 
   @override
   Widget build(BuildContext context) {
     return MultiBlocListener(
       listeners: [
-        // POST muvaffaqiyatli bo'lsa ro'yxatni yangilaymiz
         BlocListener<PostCostBloc, PostHarajatState>(
           listener: (context, state) {
             if (state is PostHarajatSuccess) {
               context.read<GetHarajatBloc>().add(const GetHarajatE());
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                    content: Text("Harajat muvaffaqiyatli qo'shildi")),
+                const SnackBar(content: Text("Harajat muvaffaqiyatli qo'shildi")),
               );
             } else if (state is PostHarajatError) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(state.message)),
-              );
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(state.message)));
             }
           },
         ),
-        // DELETE muvaffaqiyatli bo'lsa ro'yxatni yangilaymiz
         BlocListener<DeleteHarajatBloc, DeleteHarajatState>(
           listener: (context, state) {
             if (state is DeleteHarajatSuccess) {
               context.read<GetHarajatBloc>().add(const GetHarajatE());
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text("Harajat o'chirildi")),
-              );
+              ScaffoldMessenger.of(context)
+                  .showSnackBar(const SnackBar(content: Text("Harajat o'chirildi")));
             } else if (state is DeleteHarajatError) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(state.message)),
-              );
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(state.message)));
             }
           },
         ),
-        // UPDATE muvaffaqiyatli bo'lsa ro'yxatni yangilaymiz
         BlocListener<UpdateHarajatBloc, UpdateHarajatState>(
           listener: (context, state) {
             if (state is UpdateHarajatSuccess) {
               context.read<GetHarajatBloc>().add(const GetHarajatE());
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text("Harajat yangilandi")),
-              );
+              ScaffoldMessenger.of(context)
+                  .showSnackBar(const SnackBar(content: Text("Harajat yangilandi")));
             } else if (state is UpdateHarajatError) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(state.message)),
-              );
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(state.message)));
             }
           },
         ),
@@ -241,14 +203,11 @@ class _HarajatChiqimPageState extends State<HarajatChiqimPage> {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.arrow_back_ios_new_rounded,
-                            size: 16, color: Color(0xFF1877F2)),
+                        Icon(Icons.arrow_back_ios_new_rounded, size: 16, color: Color(0xFF1877F2)),
                         SizedBox(width: 6),
                         Text("Orqaga",
                             style: TextStyle(
-                                color: Color(0xFF1877F2),
-                                fontSize: 13,
-                                fontWeight: FontWeight.w500)),
+                                color: Color(0xFF1877F2), fontSize: 13, fontWeight: FontWeight.w500)),
                       ],
                     ),
                   ),
@@ -260,9 +219,8 @@ class _HarajatChiqimPageState extends State<HarajatChiqimPage> {
                   child: Container(
                     padding: const EdgeInsets.all(18),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.85),
-                      borderRadius: BorderRadius.circular(16),
-                    ),
+                        color: Colors.white.withOpacity(0.85),
+                        borderRadius: BorderRadius.circular(16)),
                     child: BlocBuilder<GetHarajatBloc, GetHarajatState>(
                       builder: (context, harajatState) {
                         final workers = _getWorkers(context);
@@ -276,9 +234,7 @@ class _HarajatChiqimPageState extends State<HarajatChiqimPage> {
                               children: [
                                 const Expanded(
                                   child: Text("Harajat chiqim",
-                                      style: TextStyle(
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.w700)),
+                                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
                                 ),
                                 SizedBox(
                                   width: 180,
@@ -286,11 +242,10 @@ class _HarajatChiqimPageState extends State<HarajatChiqimPage> {
                                   child: ElevatedButton(
                                     onPressed: () => onAdd(workers),
                                     style: ElevatedButton.styleFrom(
-                                      backgroundColor: const Color(0xFF1877F2),
-                                      foregroundColor: Colors.white,
-                                      elevation: 0,
-                                      shape: const StadiumBorder(),
-                                    ),
+                                        backgroundColor: const Color(0xFF1877F2),
+                                        foregroundColor: Colors.white,
+                                        elevation: 0,
+                                        shape: const StadiumBorder()),
                                     child: const Text("Chiqim qo'shish"),
                                   ),
                                 ),
@@ -298,21 +253,16 @@ class _HarajatChiqimPageState extends State<HarajatChiqimPage> {
                             ),
                             const SizedBox(height: 18),
                             PaymentTabsWg(
-                              selectedIndex: selectedTab,
-                              onChanged: (i) =>
-                                  setState(() => selectedTab = i),
-                            ),
+                                selectedIndex: selectedTab,
+                                onChanged: (i) => setState(() => selectedTab = i)),
                             const SizedBox(height: 14),
 
-                            // Loading holati
                             if (harajatState is GetHarajatLoading)
                               const Center(
                                   child: Padding(
-                                    padding: EdgeInsets.all(20),
-                                    child: CircularProgressIndicator(),
-                                  )),
+                                      padding: EdgeInsets.all(20),
+                                      child: CircularProgressIndicator())),
 
-                            // Xatolik holati
                             if (harajatState is GetHarajatError)
                               Center(
                                 child: Padding(
@@ -320,8 +270,7 @@ class _HarajatChiqimPageState extends State<HarajatChiqimPage> {
                                   child: Column(
                                     children: [
                                       Text(harajatState.message,
-                                          style: const TextStyle(
-                                              color: Colors.red)),
+                                          style: const TextStyle(color: Colors.red)),
                                       const SizedBox(height: 10),
                                       ElevatedButton(
                                         onPressed: () => context
@@ -334,7 +283,6 @@ class _HarajatChiqimPageState extends State<HarajatChiqimPage> {
                                 ),
                               ),
 
-                            // Ma'lumotlar
                             if (harajatState is GetHarajatSuccess)
                               ExpenseTableWg(
                                 rows: filteredRows,

@@ -21,7 +21,7 @@ class Sidebar extends StatelessWidget {
         children: [
           const SizedBox(height: 20),
           _LogoBlock(),
-          SizedBox(height: 70.h,),
+          SizedBox(height: 70.h),
           _MenuItem(
             title: "Asosiy",
             icon: Icons.grid_view_rounded,
@@ -70,6 +70,12 @@ class Sidebar extends StatelessWidget {
             selected: selectedIndex == 7,
             onTap: () => onSelect(7),
           ),
+          _MenuItem(
+            title: "Balans",
+            icon: Icons.account_balance_wallet_rounded,
+            selected: selectedIndex == 8,
+            onTap: () => onSelect(8),
+          ),
         ],
       ),
     );
@@ -82,7 +88,7 @@ class _LogoBlock extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ListTile(
-      title: SvgPicture.asset("assets/logo/logo.svg",height: 80,width: 80,),
+      title: SvgPicture.asset("assets/logo/logo.svg", height: 80, width: 80),
     );
   }
 }
@@ -123,7 +129,8 @@ class _MenuItem extends StatelessWidget {
                   title,
                   style: TextStyle(
                     color: color,
-                    fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                    fontWeight:
+                    selected ? FontWeight.w700 : FontWeight.w500,
                   ),
                 ),
               ],

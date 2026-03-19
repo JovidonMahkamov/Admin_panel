@@ -414,7 +414,7 @@ class _KassaRow extends StatelessWidget {
               SizedBox(width: 110, child: Text(row.paymentType.label, style: const TextStyle(fontSize: 12))),
               SizedBox(width: 150, child: Text(row.doKon, style: const TextStyle(fontSize: 12), overflow: TextOverflow.ellipsis)),
               SizedBox(width: 180, child: Text(row.mahsulotlar.join(', '), style: const TextStyle(fontSize: 12), overflow: TextOverflow.ellipsis)),
-              SizedBox(width: 120, child: Text(formatAmount(row.summa.toInt()), style: const TextStyle(fontSize: 12))),
+              SizedBox(width: 120, child: Text(formatAmount(row.summa), style: const TextStyle(fontSize: 12))),
               SizedBox(width: 180, child: Text(row.izoh, style: const TextStyle(fontSize: 12), overflow: TextOverflow.ellipsis)),
               SizedBox(
                 width: 70,

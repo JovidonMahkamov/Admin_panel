@@ -83,4 +83,47 @@ class UpdateKassaE extends CostEvent {
     required this.tolovTuri,
   });
 }
+abstract class DokonChiqimEvent {
+  const DokonChiqimEvent();
+}
+
+class GetDokonChiqimE extends DokonChiqimEvent {
+  final String? tolovTuri;
+  const GetDokonChiqimE({this.tolovTuri});
+}
+
+class PostDokonChiqimE extends DokonChiqimEvent {
+  final String tolovTuri;
+  final double summa;
+  final String? izoh;
+  final String? tavsif;
+
+  const PostDokonChiqimE({
+    required this.tolovTuri,
+    required this.summa,
+    this.izoh,
+    this.tavsif,
+  });
+}
+
+class PatchDokonChiqimE extends DokonChiqimEvent {
+  final int id;
+  final String? tolovTuri;
+  final double? summa;
+  final String? izoh;
+  final String? tavsif;
+
+  const PatchDokonChiqimE({
+    required this.id,
+    this.tolovTuri,
+    this.summa,
+    this.izoh,
+    this.tavsif,
+  });
+}
+
+class DeleteDokonChiqimE extends DokonChiqimEvent {
+  final int id;
+  const DeleteDokonChiqimE({required this.id});
+}
 

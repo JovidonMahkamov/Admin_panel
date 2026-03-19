@@ -1,5 +1,6 @@
 import 'package:admin_panel/features/cost/data/model/cost_model.dart';
 import 'package:admin_panel/features/cost/data/model/delete_expense_model.dart';
+import 'package:admin_panel/features/cost/data/model/dokon_chiqim_model.dart';
 import 'package:admin_panel/features/cost/data/model/expense_response_model.dart';
 import 'package:admin_panel/features/cost/data/model/update_cash_expense_model.dart';
 import 'package:admin_panel/features/cost/data/model/update_expense_data_model.dart';
@@ -48,4 +49,24 @@ abstract class CostDataSource {
     required num summa,
     required String tolovTuri,
   });
+
+  // DokonChiqim
+  Future<List<DokonChiqimModel>> getDokonChiqim({String? tolovTuri});
+
+  Future<CreateDokonChiqimModel> postDokonChiqim({
+    required String tolovTuri,
+    required double summa,
+    String? izoh,
+    String? tavsif,
+  });
+
+  Future<CreateDokonChiqimModel> patchDokonChiqim({
+    required int id,
+    String? tolovTuri,
+    double? summa,
+    String? izoh,
+    String? tavsif,
+  });
+
+  Future<DeleteDokonChiqimModel> deleteDokonChiqim({required int id});
 }

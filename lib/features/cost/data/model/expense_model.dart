@@ -1,4 +1,5 @@
 import 'package:admin_panel/features/cost/domain/entity/expense_entity.dart';
+
 class ExpenseModel extends ExpenseEntity {
   const ExpenseModel({
     required super.id,
@@ -15,7 +16,7 @@ class ExpenseModel extends ExpenseEntity {
       id: json['id'] ?? 0,
       tolovTuri: json['tolov_turi'] ?? '',
       ishchiIdField: json['ishchi_id_field'] ?? '',
-      summa: (json['summa'] ?? 0).toInt(),
+      summa: (json['summa'] ?? 0).toDouble(),
       sms: json['sms'] ?? false,
       izoh: json['izoh'] ?? '',
       sana: json['sana'] ?? '',

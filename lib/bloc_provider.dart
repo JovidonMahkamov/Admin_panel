@@ -1,6 +1,8 @@
 import 'package:admin_panel/core/di/services_locator.dart';
+import 'package:admin_panel/features/balans/presentation/bloc/get_balans/balans_bloc.dart';
 import 'package:admin_panel/features/cost/presentation/bloc/delete_harajat/delete_harajat_bloc.dart';
 import 'package:admin_panel/features/cost/presentation/bloc/delete_kassa/delete_kassa_bloc.dart';
+import 'package:admin_panel/features/cost/presentation/bloc/dokon_chiqim/dokon_chiqim_bloc.dart';
 import 'package:admin_panel/features/cost/presentation/bloc/get_harajat/get_harajat_bloc.dart';
 import 'package:admin_panel/features/cost/presentation/bloc/post_harajat/post_harajat_bloc.dart';
 import 'package:admin_panel/features/cost/presentation/bloc/post_kassa/post_kassa_bloc.dart';
@@ -39,34 +41,40 @@ class MyBlocProvider extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
-        BlocProvider<GetAllWorkerBloc>(create: (context) => sl<GetAllWorkerBloc>()),
-        BlocProvider<CreateWorkerBloc>(create: (context) => sl<CreateWorkerBloc>()),
-        BlocProvider<DeleteWorkerBloc>(create: (context) => sl<DeleteWorkerBloc>()),
-        BlocProvider<UpdateWorkerBloc>(create: (context) => sl<UpdateWorkerBloc>()),
-        BlocProvider<GetAllCustomersBloc>(create: (context) => sl<GetAllCustomersBloc>()),
-        BlocProvider<CreateCustomerBloc>(create: (context) => sl<CreateCustomerBloc>()),
-        BlocProvider<DeleteCustomerBloc>(create: (context) => sl<DeleteCustomerBloc>()),
-        BlocProvider<UpdateCustomerBloc>(create: (context) => sl<UpdateCustomerBloc>()),
-        BlocProvider<GetDashboardBloc>(create: (context) => sl<GetDashboardBloc>()),
-        BlocProvider<GetProductsBloc>(create: (context) => sl<GetProductsBloc>()),
-        BlocProvider<CreateProductBloc>(create: (context) => sl<CreateProductBloc>()),
-        BlocProvider<DeleteProductBloc>(create: (context) => sl<DeleteProductBloc>()),
-        BlocProvider<FinishSalesBloc>(create: (context) => sl<FinishSalesBloc>()),
-        BlocProvider<GetMonthlySellingBloc>(create: (context) => sl<GetMonthlySellingBloc>()),
-        BlocProvider<WorkerDetailBloc>(create: (context) => sl<WorkerDetailBloc>()),
-        BlocProvider<GetHistoryBloc>(create: (context) => sl<GetHistoryBloc>()),
-        BlocProvider<GetHarajatBloc>(create: (context) => sl<GetHarajatBloc>()),
-        BlocProvider<PostCostBloc>(create: (context) => sl<PostCostBloc>()),
-        BlocProvider<DeleteHarajatBloc>(create: (context) => sl<DeleteHarajatBloc>()),
-        BlocProvider<UpdateHarajatBloc>(create: (context) => sl<UpdateHarajatBloc>()),
-        BlocProvider<UpdateProductBloc>(create: (context) => sl<UpdateProductBloc>()),
-        BlocProvider<GetKassaBloc>(create: (context) => sl<GetKassaBloc>()),
-        BlocProvider<PostKassaBloc>(create: (context) => sl<PostKassaBloc>()),
-        BlocProvider<DeleteKassaBloc>(create: (context) => sl<DeleteKassaBloc>()),
-        BlocProvider<UpdateKassaBloc>(create: (context) => sl<UpdateKassaBloc>()),
-        BlocProvider<FinishMonthlySellingBloc>(create: (context) => sl<FinishMonthlySellingBloc>()),
-        BlocProvider<GetCustomerBloc>(create: (context) => sl<GetCustomerBloc>()),
-        BlocProvider<UpdateTransferBloc>(create: (context) => sl<UpdateTransferBloc>()),
+        BlocProvider<GetAllWorkerBloc>(create: (_) => sl<GetAllWorkerBloc>()),
+        BlocProvider<CreateWorkerBloc>(create: (_) => sl<CreateWorkerBloc>()),
+        BlocProvider<DeleteWorkerBloc>(create: (_) => sl<DeleteWorkerBloc>()),
+        BlocProvider<UpdateWorkerBloc>(create: (_) => sl<UpdateWorkerBloc>()),
+        BlocProvider<GetAllCustomersBloc>(create: (_) => sl<GetAllCustomersBloc>()),
+        BlocProvider<CreateCustomerBloc>(create: (_) => sl<CreateCustomerBloc>()),
+        BlocProvider<DeleteCustomerBloc>(create: (_) => sl<DeleteCustomerBloc>()),
+        BlocProvider<UpdateCustomerBloc>(create: (_) => sl<UpdateCustomerBloc>()),
+        BlocProvider<GetDashboardBloc>(create: (_) => sl<GetDashboardBloc>()),
+        BlocProvider<GetProductsBloc>(create: (_) => sl<GetProductsBloc>()),
+        BlocProvider<CreateProductBloc>(create: (_) => sl<CreateProductBloc>()),
+        BlocProvider<DeleteProductBloc>(create: (_) => sl<DeleteProductBloc>()),
+        BlocProvider<FinishSalesBloc>(create: (_) => sl<FinishSalesBloc>()),
+        BlocProvider<GetMonthlySellingBloc>(create: (_) => sl<GetMonthlySellingBloc>()),
+        BlocProvider<WorkerDetailBloc>(create: (_) => sl<WorkerDetailBloc>()),
+        BlocProvider<GetHistoryBloc>(create: (_) => sl<GetHistoryBloc>()),
+        BlocProvider<GetHarajatBloc>(create: (_) => sl<GetHarajatBloc>()),
+        BlocProvider<PostCostBloc>(create: (_) => sl<PostCostBloc>()),
+        BlocProvider<DeleteHarajatBloc>(create: (_) => sl<DeleteHarajatBloc>()),
+        BlocProvider<UpdateHarajatBloc>(create: (_) => sl<UpdateHarajatBloc>()),
+        BlocProvider<UpdateProductBloc>(create: (_) => sl<UpdateProductBloc>()),
+        BlocProvider<GetKassaBloc>(create: (_) => sl<GetKassaBloc>()),
+        BlocProvider<PostKassaBloc>(create: (_) => sl<PostKassaBloc>()),
+        BlocProvider<DeleteKassaBloc>(create: (_) => sl<DeleteKassaBloc>()),
+        BlocProvider<UpdateKassaBloc>(create: (_) => sl<UpdateKassaBloc>()),
+        BlocProvider<FinishMonthlySellingBloc>(create: (_) => sl<FinishMonthlySellingBloc>()),
+        BlocProvider<GetCustomerBloc>(create: (_) => sl<GetCustomerBloc>()),
+        BlocProvider<UpdateTransferBloc>(create: (_) => sl<UpdateTransferBloc>()),
+        BlocProvider<GetBalansBloc>(create: (_) => sl<GetBalansBloc>()),
+        // DokonChiqim
+        BlocProvider<GetDokonChiqimBloc>(create: (_) => sl<GetDokonChiqimBloc>()),
+        BlocProvider<PostDokonChiqimBloc>(create: (_) => sl<PostDokonChiqimBloc>()),
+        BlocProvider<PatchDokonChiqimBloc>(create: (_) => sl<PatchDokonChiqimBloc>()),
+        BlocProvider<DeleteDokonChiqimBloc>(create: (_) => sl<DeleteDokonChiqimBloc>()),
       ],
       child: child,
     );

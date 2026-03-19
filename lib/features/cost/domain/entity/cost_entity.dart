@@ -15,7 +15,7 @@ class CostItemEntity {
   final String tolovTuri;
   final String ishchiIdField;
   final String ishchiFish;
-  final num summa;
+  final double summa;
   final bool sms;
   final String izoh;
   final String sana;

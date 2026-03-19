@@ -1,5 +1,6 @@
 import 'package:admin_panel/features/cost/presentation/widgets/expense_models.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class ExpenseFormDialogWg extends StatefulWidget {
   final String title;
@@ -38,22 +39,27 @@ class _ExpenseFormDialogWgState extends State<ExpenseFormDialogWg> {
 
     _paymentType = initial?.paymentType ?? PaymentType.naqd;
 
-    // workerId workers listida borligini tekshiramiz
     final workerIds = widget.workers.map((w) => w.id).toSet();
     _workerId = (initial?.workerId != null && workerIds.contains(initial!.workerId))
         ? initial.workerId
-        : null;  // listda yo'q bo'lsa null qilamiz
+        : null;
 
     _summaCtrl = TextEditingController(
-      text: initial != null ? formatAmount(initial.summa) : '',
+      text: initial != null ? _formatDisplay(initial.summa) : '',
     );
-    _currency = initial?.currency ?? CurrencyType.uzs;
     _convertatsiya = initial?.convertatsiya ?? false;
     _foyda = initial?.foyda ?? false;
     _sms = initial?.sms ?? true;
     _izohCtrl = TextEditingController(
       text: initial != null && initial.izoh != '-' ? initial.izoh : '',
     );
+  }
+
+  String _formatDisplay(double value) {
+    if (value == value.truncateToDouble()) {
+      return value.toInt().toString();
+    }
+    return value.toStringAsFixed(2);
   }
 
   @override
@@ -67,8 +73,8 @@ class _ExpenseFormDialogWgState extends State<ExpenseFormDialogWg> {
     final valid = _formKey.currentState?.validate() ?? false;
     if (!valid) return;
 
-    final digits = _summaCtrl.text.replaceAll(RegExp(r'[^0-9]'), '');
-    final summa = int.tryParse(digits) ?? 0;
+    final raw = _summaCtrl.text.replaceAll(' ', '').replaceAll(',', '.');
+    final summa = double.tryParse(raw) ?? 0;
     if (summa <= 0) return;
 
     Navigator.pop(
@@ -101,14 +107,12 @@ class _ExpenseFormDialogWgState extends State<ExpenseFormDialogWg> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 _Header(title: widget.title),
-
                 const SizedBox(height: 16),
 
                 _DialogPaymentTabs(
                   selected: _paymentType,
                   onChanged: (v) => setState(() => _paymentType = v),
                 ),
-
                 const SizedBox(height: 14),
 
                 DropdownButtonFormField<String>(
@@ -124,7 +128,6 @@ class _ExpenseFormDialogWgState extends State<ExpenseFormDialogWg> {
                   validator: (v) => v == null ? "Ishchini tanlang" : null,
                   icon: const Icon(Icons.keyboard_arrow_down_rounded),
                 ),
-
                 const SizedBox(height: 14),
 
                 Row(
@@ -133,29 +136,16 @@ class _ExpenseFormDialogWgState extends State<ExpenseFormDialogWg> {
                       flex: 3,
                       child: TextFormField(
                         controller: _summaCtrl,
-                        keyboardType: TextInputType.number,
-                        decoration: dialogInputDecoration(hintText: "Summa kiriting"),
-                        onChanged: (value) {
-                          final digits = value.replaceAll(RegExp(r'[^0-9]'), '');
-                          if (digits.isEmpty) {
-                            if (_summaCtrl.text.isNotEmpty) {
-                              _summaCtrl.value = const TextEditingValue();
-                            }
-                            return;
-                          }
-                          final formatted = formatAmount(int.parse(digits));
-                          if (formatted != _summaCtrl.text) {
-                            _summaCtrl.value = TextEditingValue(
-                              text: formatted,
-                              selection: TextSelection.collapsed(offset: formatted.length),
-                            );
-                          }
-                        },
+                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                        inputFormatters: [
+                          FilteringTextInputFormatter.allow(RegExp(r'[\d.,]')),
+                        ],
+                        decoration: dialogInputDecoration(hintText: "Summa (12563.50)"),
                         validator: (v) {
-                          final digits = (v ?? '').replaceAll(RegExp(r'[^0-9]'), '');
-                          if (digits.isEmpty) return "Summani kiriting";
-                          final num = int.tryParse(digits) ?? 0;
-                          if (num <= 0) return "Summa noto'g'ri";
+                          if (v == null || v.trim().isEmpty) return "Summani kiriting";
+                          final raw = v.replaceAll(',', '.');
+                          final n = double.tryParse(raw) ?? 0;
+                          if (n <= 0) return "Summa noto'g'ri";
                           return null;
                         },
                       ),
@@ -179,7 +169,6 @@ class _ExpenseFormDialogWgState extends State<ExpenseFormDialogWg> {
                     ),
                   ],
                 ),
-
                 const SizedBox(height: 14),
 
                 Row(
@@ -207,7 +196,6 @@ class _ExpenseFormDialogWgState extends State<ExpenseFormDialogWg> {
                     ),
                   ],
                 ),
-
                 const SizedBox(height: 14),
 
                 TextFormField(
@@ -215,7 +203,6 @@ class _ExpenseFormDialogWgState extends State<ExpenseFormDialogWg> {
                   maxLines: 2,
                   decoration: dialogInputDecoration(hintText: "Izoh qoldiring..."),
                 ),
-
                 const SizedBox(height: 18),
 
                 _BottomButtons(onCancel: () => Navigator.pop(context), onSave: _save),
@@ -228,8 +215,6 @@ class _ExpenseFormDialogWgState extends State<ExpenseFormDialogWg> {
   }
 }
 
-/* ===== small widgets ===== */
-
 class _Header extends StatelessWidget {
   final String title;
   const _Header({required this.title});
@@ -239,14 +224,9 @@ class _Header extends StatelessWidget {
     return Row(
       children: [
         Expanded(
-          child: Text(
-            title,
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-              color: Color(0xFF474747),
-            ),
-          ),
+          child: Text(title,
+              style: const TextStyle(
+                  fontSize: 16, fontWeight: FontWeight.w700, color: Color(0xFF474747))),
         ),
         Material(
           color: Colors.transparent,
@@ -268,23 +248,16 @@ class _DialogPaymentTabs extends StatelessWidget {
   final PaymentType selected;
   final ValueChanged<PaymentType> onChanged;
 
-  const _DialogPaymentTabs({
-    required this.selected,
-    required this.onChanged,
-  });
+  const _DialogPaymentTabs({required this.selected, required this.onChanged});
 
   @override
   Widget build(BuildContext context) {
-    final items = PaymentType.values;
-
     return Container(
       height: 38,
       decoration: BoxDecoration(
-        color: const Color(0xFFE9EAEC),
-        borderRadius: BorderRadius.circular(10),
-      ),
+          color: const Color(0xFFE9EAEC), borderRadius: BorderRadius.circular(10)),
       child: Row(
-        children: items.map((item) {
+        children: PaymentType.values.map((item) {
           final isSelected = item == selected;
           return Expanded(
             child: Material(
@@ -298,14 +271,11 @@ class _DialogPaymentTabs extends StatelessWidget {
                     borderRadius: BorderRadius.circular(10),
                   ),
                   alignment: Alignment.center,
-                  child: Text(
-                    item.label,
-                    style: TextStyle(
-                      fontWeight: FontWeight.w600,
-                      fontSize: 13,
-                      color: isSelected ? Colors.white : const Color(0xFF444),
-                    ),
-                  ),
+                  child: Text(item.label,
+                      style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 13,
+                          color: isSelected ? Colors.white : const Color(0xFF444))),
                 ),
               ),
             ),
@@ -321,11 +291,7 @@ class _CheckTile extends StatelessWidget {
   final bool value;
   final ValueChanged<bool> onChanged;
 
-  const _CheckTile({
-    required this.label,
-    required this.value,
-    required this.onChanged,
-  });
+  const _CheckTile({required this.label, required this.value, required this.onChanged});
 
   @override
   Widget build(BuildContext context) {
@@ -343,14 +309,14 @@ class _CheckTile extends StatelessWidget {
                 color: value ? const Color(0xFF1877F2) : Colors.white,
                 borderRadius: BorderRadius.circular(6),
                 border: Border.all(
-                  color: value ? const Color(0xFF1877F2) : const Color(0xFFE2E5EA),
-                ),
+                    color: value ? const Color(0xFF1877F2) : const Color(0xFFE2E5EA)),
               ),
               child: value ? const Icon(Icons.check, color: Colors.white, size: 20) : null,
             ),
             const SizedBox(width: 8),
             Expanded(
-              child: Text(label, style: const TextStyle(fontSize: 13, color: Color(0xFF2E2E2E))),
+              child: Text(label,
+                  style: const TextStyle(fontSize: 13, color: Color(0xFF2E2E2E))),
             ),
           ],
         ),
@@ -363,10 +329,7 @@ class _BottomButtons extends StatelessWidget {
   final VoidCallback onCancel;
   final VoidCallback onSave;
 
-  const _BottomButtons({
-    required this.onCancel,
-    required this.onSave,
-  });
+  const _BottomButtons({required this.onCancel, required this.onSave});
 
   @override
   Widget build(BuildContext context) {
@@ -378,11 +341,10 @@ class _BottomButtons extends StatelessWidget {
             child: ElevatedButton(
               onPressed: onCancel,
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFE3E6EB),
-                foregroundColor: const Color(0xFF646B75),
-                elevation: 0,
-                shape: const StadiumBorder(),
-              ),
+                  backgroundColor: const Color(0xFFE3E6EB),
+                  foregroundColor: const Color(0xFF646B75),
+                  elevation: 0,
+                  shape: const StadiumBorder()),
               child: const Text("Bekor qilish"),
             ),
           ),
@@ -394,11 +356,10 @@ class _BottomButtons extends StatelessWidget {
             child: ElevatedButton(
               onPressed: onSave,
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF1877F2),
-                foregroundColor: Colors.white,
-                elevation: 0,
-                shape: const StadiumBorder(),
-              ),
+                  backgroundColor: const Color(0xFF1877F2),
+                  foregroundColor: Colors.white,
+                  elevation: 0,
+                  shape: const StadiumBorder()),
               child: const Text("Saqlash"),
             ),
           ),

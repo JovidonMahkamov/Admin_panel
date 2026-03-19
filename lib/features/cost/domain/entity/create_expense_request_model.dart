@@ -2,7 +2,7 @@ class CreateExpenseRequestModel {
   final String ishchiIdField;
   final String izoh;
   final bool sms;
-  final int summa;
+  final double summa;
   final String tolovTuri;
 
   const CreateExpenseRequestModel({

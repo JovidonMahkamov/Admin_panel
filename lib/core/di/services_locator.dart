@@ -1,10 +1,17 @@
 import 'package:admin_panel/core/networks/dio_client.dart';
+import 'package:admin_panel/features/balans/data/datasource/balans_data_source.dart';
+import 'package:admin_panel/features/balans/data/datasource/balans_data_source_impl.dart';
+import 'package:admin_panel/features/balans/data/repo/balans_repo_impl.dart';
+import 'package:admin_panel/features/balans/domain/repo/balans_repo.dart';
+import 'package:admin_panel/features/balans/domain/usecase/balans_use_case.dart';
+import 'package:admin_panel/features/balans/presentation/bloc/get_balans/balans_bloc.dart';
 import 'package:admin_panel/features/cost/data/datasource/cost_data_source.dart';
 import 'package:admin_panel/features/cost/data/datasource/cost_data_source_impl.dart';
 import 'package:admin_panel/features/cost/data/repository/cost_repo_impl.dart';
 import 'package:admin_panel/features/cost/domain/repository/cost_repo.dart';
 import 'package:admin_panel/features/cost/domain/usecase/delete_harajat_use_case.dart';
 import 'package:admin_panel/features/cost/domain/usecase/delete_kassa_use_case.dart';
+import 'package:admin_panel/features/cost/domain/usecase/dokon_chiqim_use_case.dart';
 import 'package:admin_panel/features/cost/domain/usecase/get_harajat_use_case.dart';
 import 'package:admin_panel/features/cost/domain/usecase/get_kassa_use_case.dart';
 import 'package:admin_panel/features/cost/domain/usecase/post_kassa_use_case.dart';
@@ -12,6 +19,7 @@ import 'package:admin_panel/features/cost/domain/usecase/update_harajat_use_case
 import 'package:admin_panel/features/cost/domain/usecase/update_kassa_use_case.dart';
 import 'package:admin_panel/features/cost/presentation/bloc/delete_harajat/delete_harajat_bloc.dart';
 import 'package:admin_panel/features/cost/presentation/bloc/delete_kassa/delete_kassa_bloc.dart';
+import 'package:admin_panel/features/cost/presentation/bloc/dokon_chiqim/dokon_chiqim_bloc.dart';
 import 'package:admin_panel/features/cost/presentation/bloc/get_harajat/get_harajat_bloc.dart';
 import 'package:admin_panel/features/cost/presentation/bloc/get_kassa/get_kassa_bloc.dart';
 import 'package:admin_panel/features/cost/presentation/bloc/post_harajat/post_harajat_bloc.dart';
@@ -90,155 +98,97 @@ final sl = GetIt.instance;
 
 Future<void> setup() async {
   sl.registerLazySingleton(() => Dio());
-
-  /// DioClient
   sl.registerLazySingleton<DioClient>(() => DioClient());
 
-  ///! DataSource
-  ///* Worker
-  sl.registerLazySingleton<WorkerDataSource>(
-        () => WorkerDataSourceImpl(),
-  );
-  ///* Customer
-  sl.registerLazySingleton<CustomerDataSource>(
-        () => CustomerDataSourceImpl(),
-  );
-  ///* Dashboard
-  sl.registerLazySingleton<DashboardDataSource>(
-        () => DashboardDataSourceImpl(),
-  );
-  ///* Products
-  sl.registerLazySingleton<ProductDataSource>(
-        () => ProductDataSourceImpl(),
-  );
-  ///* Oylik Savdo
-  sl.registerLazySingleton<MonthlySellingDataSource>(
-        () => MonthlySellingDataSourceImpl(),
-  );
-  ///*Tarix
-  sl.registerLazySingleton<HistoryDataSource>(
-        () => HistoryDataSourceImpl(),
-  );
-  ///*Harajat
-  sl.registerLazySingleton<CostDataSource>(
-        () => CostDataSourceImpl(),
-  );
-  ///! Repository
-  ///* Worker
-  sl.registerLazySingleton<WorkerRepositories>(
-        () => WorkerRepositoryImpl(  remote: sl(),),
-  );
-  ///* Customer
-  sl.registerLazySingleton<CustomerRepositories>(
-        () => CustomerRepositoryImpl(  remote: sl(),),
-  );
-  ///* Dashboard
-  sl.registerLazySingleton<DashboardRepositories>(
-        () => DashboardRepositoryImpl(  remote: sl(),),
-  );
-  ///* Products
-  sl.registerLazySingleton<ProductRepositories>(
-        () => ProductRepositoryImpl(  remote: sl(),),
-  );
-  ///* Oylik Savdo
-  sl.registerLazySingleton<MonthlySellingRepositories>(
-        () => MonthlySellingRepositoryImpl(  remote: sl(),),
-  );
-  ///*Tarix
-  sl.registerLazySingleton<HistoryRepo>(
-        () => HistoryRepoImpl(remote: sl(),),
-  );
-  ///*Harajat
-  sl.registerLazySingleton<CostRepo>(
-        () => CostRepoImpl(remote: sl(),),
-  );
-  ///! UseCase
-  ///*Worker
-  sl.registerLazySingleton(()=>GetAllWorkersUseCase(sl()));
-  sl.registerLazySingleton(()=>CreateWorkerUseCase(sl()));
-  sl.registerLazySingleton(()=>DeleteWorkerUseCase(sl()));
-  sl.registerLazySingleton(()=>UpdateWorkerUseCase(sl()));
+  // DataSource
+  sl.registerLazySingleton<WorkerDataSource>(() => WorkerDataSourceImpl());
+  sl.registerLazySingleton<CustomerDataSource>(() => CustomerDataSourceImpl());
+  sl.registerLazySingleton<DashboardDataSource>(() => DashboardDataSourceImpl());
+  sl.registerLazySingleton<ProductDataSource>(() => ProductDataSourceImpl());
+  sl.registerLazySingleton<MonthlySellingDataSource>(() => MonthlySellingDataSourceImpl());
+  sl.registerLazySingleton<HistoryDataSource>(() => HistoryDataSourceImpl());
+  sl.registerLazySingleton<CostDataSource>(() => CostDataSourceImpl());
+  sl.registerLazySingleton<BalansDataSource>(() => BalansDataSourceImpl());
 
-  ///*Customer
-  sl.registerLazySingleton(()=>GetAllCustomersUseCase(sl()));
-  sl.registerLazySingleton(()=>CreateCustomerUseCase(sl()));
-  sl.registerLazySingleton(()=>DeleteCustomerUseCase(sl()));
-  sl.registerLazySingleton(()=>UpdateCustomerUseCase(sl()));
-  sl.registerLazySingleton(()=>GetCustomerDetailUseCase(sl()));
+  // Repository
+  sl.registerLazySingleton<WorkerRepositories>(() => WorkerRepositoryImpl(remote: sl()));
+  sl.registerLazySingleton<CustomerRepositories>(() => CustomerRepositoryImpl(remote: sl()));
+  sl.registerLazySingleton<DashboardRepositories>(() => DashboardRepositoryImpl(remote: sl()));
+  sl.registerLazySingleton<ProductRepositories>(() => ProductRepositoryImpl(remote: sl()));
+  sl.registerLazySingleton<MonthlySellingRepositories>(() => MonthlySellingRepositoryImpl(remote: sl()));
+  sl.registerLazySingleton<HistoryRepo>(() => HistoryRepoImpl(remote: sl()));
+  sl.registerLazySingleton<CostRepo>(() => CostRepoImpl(remote: sl()));
+  sl.registerLazySingleton<BalansRepository>(() => BalansRepositoryImpl(remote: sl()));
 
-  ///*Dashboard
-  sl.registerLazySingleton(()=>GetDashboardUseCase(sl()));
-  sl.registerLazySingleton(()=>FinishSalesUseCase(sl()));
-  sl.registerLazySingleton(()=>WorkerDetailUseCase(sl()));
-  sl.registerLazySingleton(()=>UpdateTransferUseCase(sl()));
+  // UseCase
+  sl.registerLazySingleton(() => GetAllWorkersUseCase(sl()));
+  sl.registerLazySingleton(() => CreateWorkerUseCase(sl()));
+  sl.registerLazySingleton(() => DeleteWorkerUseCase(sl()));
+  sl.registerLazySingleton(() => UpdateWorkerUseCase(sl()));
+  sl.registerLazySingleton(() => GetAllCustomersUseCase(sl()));
+  sl.registerLazySingleton(() => CreateCustomerUseCase(sl()));
+  sl.registerLazySingleton(() => DeleteCustomerUseCase(sl()));
+  sl.registerLazySingleton(() => UpdateCustomerUseCase(sl()));
+  sl.registerLazySingleton(() => GetCustomerDetailUseCase(sl()));
+  sl.registerLazySingleton(() => GetDashboardUseCase(sl()));
+  sl.registerLazySingleton(() => FinishSalesUseCase(sl()));
+  sl.registerLazySingleton(() => WorkerDetailUseCase(sl()));
+  sl.registerLazySingleton(() => UpdateTransferUseCase(sl()));
+  sl.registerLazySingleton(() => GetProductUseCase(sl()));
+  sl.registerLazySingleton(() => CreateProductUseCase(sl()));
+  sl.registerLazySingleton(() => DeleteProductUseCase(sl()));
+  sl.registerLazySingleton(() => UpdateProductUseCase(sl()));
+  sl.registerLazySingleton(() => GetMonthlySellingUseCase(sl()));
+  sl.registerLazySingleton(() => FinishMonthlySalesUseCase(sl()));
+  sl.registerLazySingleton(() => HistoryUseCase(sl()));
+  sl.registerLazySingleton(() => GetHarajatUseCase(sl()));
+  sl.registerLazySingleton(() => PostHarajatUseCase(sl()));
+  sl.registerLazySingleton(() => DeleteHarajatUseCase(sl()));
+  sl.registerLazySingleton(() => UpdateHarajatUseCase(sl()));
+  sl.registerLazySingleton(() => GetKassaUseCase(sl()));
+  sl.registerLazySingleton(() => PostKassaUseCase(sl()));
+  sl.registerLazySingleton(() => DeleteKassaUseCase(sl()));
+  sl.registerLazySingleton(() => UpdateKassaUseCase(sl()));
+  sl.registerLazySingleton(() => GetBalansUseCase(sl()));
+  // DokonChiqim usecaselar
+  sl.registerLazySingleton(() => GetDokonChiqimUseCase(sl()));
+  sl.registerLazySingleton(() => PostDokonChiqimUseCase(sl()));
+  sl.registerLazySingleton(() => PatchDokonChiqimUseCase(sl()));
+  sl.registerLazySingleton(() => DeleteDokonChiqimUseCase(sl()));
 
-  ///*Products
-  sl.registerLazySingleton(()=>GetProductUseCase(sl()));
-  sl.registerLazySingleton(()=>CreateProductUseCase(sl()));
-  sl.registerLazySingleton(()=>DeleteProductUseCase(sl()));
-  sl.registerLazySingleton(()=>UpdateProductUseCase(sl()));
-
-  ///*Oylik Savdo
-  sl.registerLazySingleton(()=>GetMonthlySellingUseCase(sl()));
-  sl.registerLazySingleton(()=>FinishMonthlySalesUseCase(sl()));
-
-  ///*Tarix
-  sl.registerLazySingleton(()=>HistoryUseCase(sl()));
-  ///*Harajat
-  sl.registerLazySingleton(()=>GetHarajatUseCase(sl()));
-  sl.registerLazySingleton(()=>PostHarajatUseCase(sl()));
-  sl.registerLazySingleton(()=>DeleteHarajatUseCase(sl()));
-  sl.registerLazySingleton(()=>UpdateHarajatUseCase(sl()));
-  ///*Kassa
-  sl.registerLazySingleton(()=>GetKassaUseCase(sl()));
-  sl.registerLazySingleton(()=>PostKassaUseCase(sl()));
-  sl.registerLazySingleton(()=>DeleteKassaUseCase(sl()));
-  sl.registerLazySingleton(()=>UpdateKassaUseCase(sl()));
-
-
-  ///! Bloc
-  ///* Worker
-  sl.registerLazySingleton(()=> GetAllWorkerBloc(sl()));
-  sl.registerLazySingleton(()=> CreateWorkerBloc(sl()));
-  sl.registerLazySingleton(()=> DeleteWorkerBloc(sl()));
-  sl.registerLazySingleton(()=> UpdateWorkerBloc(sl()));
-
-  ///* Customer
-  sl.registerLazySingleton(()=> GetAllCustomersBloc(sl()));
-  sl.registerLazySingleton(()=> CreateCustomerBloc(sl()));
-  sl.registerLazySingleton(()=> DeleteCustomerBloc(sl()));
-  sl.registerLazySingleton(()=> UpdateCustomerBloc(sl()));
-  sl.registerLazySingleton(()=> GetCustomerBloc(sl()));
-
-  ///* Dashboard
-  sl.registerLazySingleton(()=> GetDashboardBloc(sl()));
-  sl.registerLazySingleton(()=> FinishSalesBloc(sl()));
-  sl.registerLazySingleton(()=> WorkerDetailBloc(sl()));
-  sl.registerLazySingleton(()=> UpdateTransferBloc(sl()));
-
-  ///* Products
-  sl.registerLazySingleton(()=> GetProductsBloc(sl()));
-  sl.registerLazySingleton(()=> CreateProductBloc(sl()));
-  sl.registerLazySingleton(()=> DeleteProductBloc(sl()));
-  sl.registerLazySingleton(()=> UpdateProductBloc(sl()));
-
-  ///* Oylik Savdo
-  sl.registerLazySingleton(()=> GetMonthlySellingBloc(sl()));
-  sl.registerLazySingleton(()=> FinishMonthlySellingBloc(sl()));
-
-  ///* Tarix
-  sl.registerLazySingleton(()=> GetHistoryBloc(sl()));
-  ///* Harajat
-  sl.registerLazySingleton(()=> GetHarajatBloc(sl()));
-  sl.registerLazySingleton(()=> PostCostBloc(sl()));
-  sl.registerLazySingleton(()=> DeleteHarajatBloc(sl()));
-  sl.registerLazySingleton(()=> UpdateHarajatBloc(sl()));
-
-  ///* Kassa
-  sl.registerLazySingleton(()=> GetKassaBloc(sl()));
-  sl.registerLazySingleton(()=> PostKassaBloc(sl()));
-  sl.registerLazySingleton(()=> DeleteKassaBloc(sl()));
-  sl.registerLazySingleton(()=> UpdateKassaBloc(sl()));
+  // Bloc
+  sl.registerLazySingleton(() => GetAllWorkerBloc(sl()));
+  sl.registerLazySingleton(() => CreateWorkerBloc(sl()));
+  sl.registerLazySingleton(() => DeleteWorkerBloc(sl()));
+  sl.registerLazySingleton(() => UpdateWorkerBloc(sl()));
+  sl.registerLazySingleton(() => GetAllCustomersBloc(sl()));
+  sl.registerLazySingleton(() => CreateCustomerBloc(sl()));
+  sl.registerLazySingleton(() => DeleteCustomerBloc(sl()));
+  sl.registerLazySingleton(() => UpdateCustomerBloc(sl()));
+  sl.registerLazySingleton(() => GetCustomerBloc(sl()));
+  sl.registerLazySingleton(() => GetDashboardBloc(sl()));
+  sl.registerLazySingleton(() => FinishSalesBloc(sl()));
+  sl.registerLazySingleton(() => WorkerDetailBloc(sl()));
+  sl.registerLazySingleton(() => UpdateTransferBloc(sl()));
+  sl.registerLazySingleton(() => GetProductsBloc(sl()));
+  sl.registerLazySingleton(() => CreateProductBloc(sl()));
+  sl.registerLazySingleton(() => DeleteProductBloc(sl()));
+  sl.registerLazySingleton(() => UpdateProductBloc(sl()));
+  sl.registerLazySingleton(() => GetMonthlySellingBloc(sl()));
+  sl.registerLazySingleton(() => FinishMonthlySellingBloc(sl()));
+  sl.registerLazySingleton(() => GetHistoryBloc(sl()));
+  sl.registerLazySingleton(() => GetHarajatBloc(sl()));
+  sl.registerLazySingleton(() => PostCostBloc(sl()));
+  sl.registerLazySingleton(() => DeleteHarajatBloc(sl()));
+  sl.registerLazySingleton(() => UpdateHarajatBloc(sl()));
+  sl.registerLazySingleton(() => GetKassaBloc(sl()));
+  sl.registerLazySingleton(() => PostKassaBloc(sl()));
+  sl.registerLazySingleton(() => DeleteKassaBloc(sl()));
+  sl.registerLazySingleton(() => UpdateKassaBloc(sl()));
+  sl.registerLazySingleton(() => GetBalansBloc(sl()));
+  // DokonChiqim bloclar
+  sl.registerLazySingleton(() => GetDokonChiqimBloc(sl()));
+  sl.registerLazySingleton(() => PostDokonChiqimBloc(sl()));
+  sl.registerLazySingleton(() => PatchDokonChiqimBloc(sl()));
+  sl.registerLazySingleton(() => DeleteDokonChiqimBloc(sl()));
 }
-
-

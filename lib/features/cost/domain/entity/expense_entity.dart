@@ -2,7 +2,7 @@ class ExpenseEntity {
   final int id;
   final String tolovTuri;
   final String ishchiIdField;
-  final int summa;
+  final double summa;
   final bool sms;
   final String izoh;
   final String sana;

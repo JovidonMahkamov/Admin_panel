@@ -1,7 +1,4 @@
-
-
 import 'package:flutter/material.dart';
-
 import 'expense_models.dart';
 
 class ExpenseTableWg extends StatelessWidget {
@@ -38,7 +35,6 @@ class ExpenseTableWg extends StatelessWidget {
                   SizedBox(width: 120, child: Text("To'lov turi", style: headerStyle)),
                   SizedBox(width: 250, child: Text("Ishchi", style: headerStyle)),
                   SizedBox(width: 140, child: Text("Summa", style: headerStyle)),
-                  SizedBox(width: 90, child: Text("Valyuta", style: headerStyle)),
                   SizedBox(width: 190, child: Text("Izoh", style: headerStyle)),
                   const SizedBox(width: 70),
                 ],
@@ -49,7 +45,8 @@ class ExpenseTableWg extends StatelessWidget {
             if (rows.isEmpty)
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 22),
-                child: Text("Ma'lumot yo'q", style: TextStyle(color: Colors.grey.shade600)),
+                child: Text("Ma'lumot yo'q",
+                    style: TextStyle(color: Colors.grey.shade600)),
               )
             else
               ...rows.map((r) => _ExpenseRow(
@@ -69,11 +66,7 @@ class _ExpenseRow extends StatelessWidget {
   final VoidCallback onEdit;
   final VoidCallback onDelete;
 
-  const _ExpenseRow({
-    required this.row,
-    required this.onEdit,
-    required this.onDelete,
-  });
+  const _ExpenseRow({required this.row, required this.onEdit, required this.onDelete});
 
   @override
   Widget build(BuildContext context) {
@@ -83,25 +76,24 @@ class _ExpenseRow extends StatelessWidget {
           padding: const EdgeInsets.symmetric(vertical: 12),
           child: Row(
             children: [
-              SizedBox(width: 90, child: Text(formatDate(row.sana), style: const TextStyle(fontSize: 12))),
-              SizedBox(width: 120, child: Text(row.paymentType.label, style: const TextStyle(fontSize: 12))),
+              SizedBox(
+                  width: 90,
+                  child: Text(formatDate(row.sana), style: const TextStyle(fontSize: 12))),
+              SizedBox(
+                  width: 120,
+                  child: Text(row.paymentType.label, style: const TextStyle(fontSize: 12))),
               SizedBox(
                 width: 250,
-                child: Text(
-                  row.workerName,
-                  style: const TextStyle(fontSize: 12),
-                  overflow: TextOverflow.ellipsis,
-                ),
+                child: Text(row.workerName,
+                    style: const TextStyle(fontSize: 12), overflow: TextOverflow.ellipsis),
               ),
-              SizedBox(width: 140, child: Text(formatAmount(row.summa), style: const TextStyle(fontSize: 12))),
-              SizedBox(width: 90, child: Text(row.currency.label, style: const TextStyle(fontSize: 12))),
+              SizedBox(
+                  width: 140,
+                  child: Text(formatAmount(row.summa), style: const TextStyle(fontSize: 12))),
               SizedBox(
                 width: 190,
-                child: Text(
-                  row.izoh,
-                  style: const TextStyle(fontSize: 12),
-                  overflow: TextOverflow.ellipsis,
-                ),
+                child: Text(row.izoh,
+                    style: const TextStyle(fontSize: 12), overflow: TextOverflow.ellipsis),
               ),
               SizedBox(
                 width: 70,
@@ -109,16 +101,14 @@ class _ExpenseRow extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     _IconInk(
-                      icon: Icons.edit_outlined,
-                      color: const Color(0xFF1877F2),
-                      onTap: onEdit,
-                    ),
+                        icon: Icons.edit_outlined,
+                        color: const Color(0xFF1877F2),
+                        onTap: onEdit),
                     const SizedBox(width: 4),
                     _IconInk(
-                      icon: Icons.delete_outline_rounded,
-                      color: Colors.red,
-                      onTap: onDelete,
-                    ),
+                        icon: Icons.delete_outline_rounded,
+                        color: Colors.red,
+                        onTap: onDelete),
                   ],
                 ),
               ),
@@ -136,11 +126,7 @@ class _IconInk extends StatelessWidget {
   final Color color;
   final VoidCallback onTap;
 
-  const _IconInk({
-    required this.icon,
-    required this.color,
-    required this.onTap,
-  });
+  const _IconInk({required this.icon, required this.color, required this.onTap});
 
   @override
   Widget build(BuildContext context) {

@@ -1,3 +1,4 @@
+import 'package:admin_panel/features/balans/presentation/pages/balans_page.dart';
 import 'package:admin_panel/features/cost/presentation/pages/cost_page.dart';
 import 'package:admin_panel/features/history/presentation/pages/history_page.dart';
 import 'package:admin_panel/features/monthly_selling/presentation/pages/monthly_selling_page.dart';
@@ -26,14 +27,15 @@ class _AppShellState extends State<AppShell> {
   void initState() {
     super.initState();
     _pages = [
-      const DashboardPage(),
-      const WorkersPage(),
-      const ProductPage(),
-      const CustomerPage(),
-      const MonthlySellingPage(),
-      const HistoryPage(),
-      const ProfilePage(),
-      const CostPage(),
+      const DashboardPage(),   // 0
+      const WorkersPage(),     // 1
+      const ProductPage(),     // 2
+      const CustomerPage(),    // 3
+      const MonthlySellingPage(), // 4
+      const HistoryPage(),     // 5
+      const ProfilePage(),     // 6
+      const CostPage(),        // 7
+      const BalansPage(),      // 8
     ];
   }
 
