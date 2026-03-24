@@ -18,11 +18,7 @@ class AddEditProductDialog extends StatefulWidget {
   final String title;
   final ProductRow? initial; // null = qo'shish, bor = tahrirlash
 
-  const AddEditProductDialog({
-    super.key,
-    required this.title,
-    this.initial,
-  });
+  const AddEditProductDialog({super.key, required this.title, this.initial});
 
   @override
   State<AddEditProductDialog> createState() => _AddEditProductDialogState();
@@ -33,15 +29,14 @@ class _AddEditProductDialogState extends State<AddEditProductDialog> {
 
   late final TextEditingController _nameCtrl;
   late final TextEditingController _metrCtrl;
-  late final TextEditingController _donaCtrl;
   late final TextEditingController _packetCtrl;
   late final TextEditingController _pachkaCtrl;
   late final TextEditingController _metriCtrl;
-  late final TextEditingController _miqdoriCtrl;
   late final TextEditingController _kelganCtrl;
   late final TextEditingController _jaminarxCtrl;
 
   String _imagePath = '';
+
   bool get _isEdit => widget.initial != null;
 
   @override
@@ -51,11 +46,9 @@ class _AddEditProductDialogState extends State<AddEditProductDialog> {
 
     _nameCtrl = TextEditingController(text: p?.productName ?? '');
     _metrCtrl = TextEditingController(text: p?.metrPrice ?? '');
-    _donaCtrl = TextEditingController(text: p?.donaPrice ?? '');
     _packetCtrl = TextEditingController(text: p?.packetPrice ?? '');
     _pachkaCtrl = TextEditingController(text: p?.pachka ?? '');
     _metriCtrl = TextEditingController(text: p?.metri ?? '');
-    _miqdoriCtrl = TextEditingController(text: p?.miqdori ?? '');
     _kelganCtrl = TextEditingController(text: p?.kelganNarx ?? '');
     _jaminarxCtrl = TextEditingController(text: p?.jamiNarx ?? '');
   }
@@ -64,11 +57,9 @@ class _AddEditProductDialogState extends State<AddEditProductDialog> {
   void dispose() {
     _nameCtrl.dispose();
     _metrCtrl.dispose();
-    _donaCtrl.dispose();
     _packetCtrl.dispose();
     _pachkaCtrl.dispose();
     _metriCtrl.dispose();
-    _miqdoriCtrl.dispose();
     _kelganCtrl.dispose();
     _jaminarxCtrl.dispose();
     super.dispose();
@@ -95,12 +86,10 @@ class _AddEditProductDialogState extends State<AddEditProductDialog> {
         UpdateProductE(
           id: widget.initial!.id,
           nomi: _nameCtrl.text.trim(),
-          narxDona: _emptyToNull(_donaCtrl.text),
           narxMetr: _emptyToNull(_metrCtrl.text),
           narxPochka: _emptyToNull(_packetCtrl.text),
           pochka: _emptyToNull(_pachkaCtrl.text),
           metr: _emptyToNull(_metriCtrl.text),
-          miqdor: _emptyToNull(_miqdoriCtrl.text),
           kelganNarx: _emptyToNull(_kelganCtrl.text),
           jamiNarx: _emptyToNull(_jaminarxCtrl.text),
           rasm: _imagePath.trim().isEmpty ? null : File(_imagePath),
@@ -110,12 +99,10 @@ class _AddEditProductDialogState extends State<AddEditProductDialog> {
       // CREATE
       final params = CreateProductParams(
         nomi: _nameCtrl.text.trim(),
-        narxDona: _emptyToNull(_donaCtrl.text),
         narxMetr: _emptyToNull(_metrCtrl.text),
         narxPochka: _emptyToNull(_packetCtrl.text),
         pochka: _emptyToNull(_pachkaCtrl.text),
         metr: _emptyToNull(_metriCtrl.text),
-        miqdor: _emptyToNull(_miqdoriCtrl.text),
         kelganNarx: _emptyToNull(_kelganCtrl.text),
         jamiNarx: _emptyToNull(_jaminarxCtrl.text),
         rasm: _imagePath.trim().isEmpty ? null : File(_imagePath),
@@ -139,9 +126,9 @@ class _AddEditProductDialogState extends State<AddEditProductDialog> {
         BlocListener<CreateProductBloc, CreateProductState>(
           listener: (context, state) async {
             if (state is CreateProductError) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(state.message)),
-              );
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(SnackBar(content: Text(state.message)));
             }
 
             if (state is CreateProductSuccess) {
@@ -161,9 +148,9 @@ class _AddEditProductDialogState extends State<AddEditProductDialog> {
         BlocListener<UpdateProductBloc, UpdateProductState>(
           listener: (context, state) {
             if (state is UpdateProductError) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(state.message)),
-              );
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(SnackBar(content: Text(state.message)));
             }
 
             if (state is UpdateProductSuccess) {
@@ -180,13 +167,10 @@ class _AddEditProductDialogState extends State<AddEditProductDialog> {
       ],
       child: Dialog(
         backgroundColor: Colors.white,
-        insetPadding:
-        const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
-        shape:
-        RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+        insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
         child: ConstrainedBox(
-          constraints:
-          const BoxConstraints(maxWidth: 980, minWidth: 820),
+          constraints: const BoxConstraints(maxWidth: 980, minWidth: 820),
           child: Padding(
             padding: const EdgeInsets.all(22),
             child: Form(
@@ -220,8 +204,7 @@ class _AddEditProductDialogState extends State<AddEditProductDialog> {
                     children: [
                       _DialogImagePreview(
                         localPath: _imagePath,
-                        networkPath:
-                        _isEdit ? widget.initial!.imagePath : '',
+                        networkPath: _isEdit ? widget.initial!.imagePath : '',
                       ),
                       const SizedBox(width: 14),
                       Expanded(
@@ -231,18 +214,17 @@ class _AddEditProductDialogState extends State<AddEditProductDialog> {
                             Text(
                               "Rasm",
                               style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey.shade700),
+                                fontSize: 12,
+                                color: Colors.grey.shade700,
+                              ),
                             ),
                             const SizedBox(height: 8),
                             Row(
                               children: [
                                 ElevatedButton.icon(
                                   onPressed: _pickImage,
-                                  icon:
-                                  const Icon(Icons.folder_open),
-                                  label:
-                                  const Text("Fayldan tanlash"),
+                                  icon: const Icon(Icons.folder_open),
+                                  label: const Text("Fayldan tanlash"),
                                 ),
                                 const SizedBox(width: 12),
                                 if (_imagePath.trim().isNotEmpty)
@@ -283,54 +265,51 @@ class _AddEditProductDialogState extends State<AddEditProductDialog> {
                           children: [
                             row2(
                               _LabeledField(
-                                  label: "Tovar nomi",
-                                  hint: "",
-                                  controller: _nameCtrl,
-                                  validator: _required),
+                                label: "Tovar nomi",
+                                hint: "",
+                                controller: _nameCtrl,
+                                validator: _required,
+                              ),
                               _LabeledField(
-                                  label: "Narx metr",
-                                  hint: "",
-                                  controller: _metrCtrl),
+                                label: "Narx metr",
+                                hint: "",
+                                controller: _metrCtrl,
+                              ),
                             ),
                             const SizedBox(height: 14),
                             row2(
                               _LabeledField(
-                                  label: "Narx dona",
-                                  hint: "",
-                                  controller: _donaCtrl),
+                                label: "Narx pochka",
+                                hint: "",
+                                controller: _packetCtrl,
+                              ),
                               _LabeledField(
-                                  label: "Narx pochka",
-                                  hint: "",
-                                  controller: _packetCtrl),
+                                label: "Sotib olingan narx",
+                                hint: "",
+                                controller: _kelganCtrl,
+                              ),
+
                             ),
                             const SizedBox(height: 14),
                             row2(
                               _LabeledField(
-                                  label: "Pochka",
-                                  hint: "",
-                                  controller: _pachkaCtrl),
+                                label: "Pochka",
+                                hint: "",
+                                controller: _pachkaCtrl,
+                              ),
                               _LabeledField(
-                                  label: "Metr",
-                                  hint: "",
-                                  controller: _metriCtrl),
+                                label: "Metr",
+                                hint: "",
+                                controller: _metriCtrl,
+                              ),
                             ),
                             const SizedBox(height: 14),
                             row2(
                               _LabeledField(
-                                  label: "Dona",
-                                  hint: "",
-                                  controller: _miqdoriCtrl),
-                              _LabeledField(
-                                  label: "Sotib olingan narx",
-                                  hint: "",
-                                  controller: _kelganCtrl),
-                            ),
-                            const SizedBox(height: 14),
-                            row2(
-                              _LabeledField(
-                                  label: "Jami narx",
-                                  hint: "",
-                                  controller: _jaminarxCtrl),
+                                label: "Jami narx",
+                                hint: "",
+                                controller: _jaminarxCtrl,
+                              ),
                               const SizedBox.shrink(),
                             ),
                           ],
@@ -340,50 +319,47 @@ class _AddEditProductDialogState extends State<AddEditProductDialog> {
                       return Column(
                         children: [
                           _LabeledField(
-                              label: "Tovar nomi",
-                              hint: "",
-                              controller: _nameCtrl,
-                              validator: _required),
+                            label: "Tovar nomi",
+                            hint: "",
+                            controller: _nameCtrl,
+                            validator: _required,
+                          ),
                           const SizedBox(height: 14),
                           _LabeledField(
-                              label: "Narx metr",
-                              hint: "",
-                              controller: _metrCtrl),
+                            label: "Narx metr",
+                            hint: "",
+                            controller: _metrCtrl,
+                          ),
                           const SizedBox(height: 14),
                           _LabeledField(
-                              label: "Narx dona",
-                              hint: "",
-                              controller: _donaCtrl),
+                            label: "Narx pochka",
+                            hint: "",
+                            controller: _packetCtrl,
+                          ),
                           const SizedBox(height: 14),
                           _LabeledField(
-                              label: "Narx pochka",
-                              hint: "",
-                              controller: _packetCtrl),
+                            label: "Pochka",
+                            hint: "",
+                            controller: _pachkaCtrl,
+                          ),
                           const SizedBox(height: 14),
                           _LabeledField(
-                              label: "Pochka",
-                              hint: "",
-                              controller: _pachkaCtrl),
+                            label: "Metr",
+                            hint: "",
+                            controller: _metriCtrl,
+                          ),
                           const SizedBox(height: 14),
                           _LabeledField(
-                              label: "Metr",
-                              hint: "",
-                              controller: _metriCtrl),
+                            label: "Sotib olingan narx",
+                            hint: "",
+                            controller: _kelganCtrl,
+                          ),
                           const SizedBox(height: 14),
                           _LabeledField(
-                              label: "Dona",
-                              hint: "",
-                              controller: _miqdoriCtrl),
-                          const SizedBox(height: 14),
-                          _LabeledField(
-                              label: "Sotib olingan narx",
-                              hint: "",
-                              controller: _kelganCtrl),
-                          const SizedBox(height: 14),
-                          _LabeledField(
-                              label: "Jami narx",
-                              hint: "",
-                              controller: _jaminarxCtrl),
+                            label: "Jami narx",
+                            hint: "",
+                            controller: _jaminarxCtrl,
+                          ),
                         ],
                       );
                     },
@@ -392,50 +368,47 @@ class _AddEditProductDialogState extends State<AddEditProductDialog> {
                   const SizedBox(height: 22),
                   _isEdit
                       ? BlocBuilder<UpdateProductBloc, UpdateProductState>(
-                    builder: (context, state) {
-                      final isLoading =
-                      state is UpdateProductLoading;
-                      return Align(
-                        alignment: Alignment.centerRight,
-                        child: SizedBox(
-                          width: 320,
-                          height: 46,
-                          child: ElevatedWidget(
-                            onPressed: isLoading ? null : _save,
-                            size: 250,
-                            text: isLoading
-                                ? "Saqlanmoqda..."
-                                : "Saqlash",
-                            backgroundColor: Colors.blueAccent,
-                            textColor: Colors.white,
-                          ),
+                          builder: (context, state) {
+                            final isLoading = state is UpdateProductLoading;
+                            return Align(
+                              alignment: Alignment.centerRight,
+                              child: SizedBox(
+                                width: 320,
+                                height: 46,
+                                child: ElevatedWidget(
+                                  onPressed: isLoading ? null : _save,
+                                  size: 250,
+                                  text: isLoading
+                                      ? "Saqlanmoqda..."
+                                      : "Saqlash",
+                                  backgroundColor: Colors.blueAccent,
+                                  textColor: Colors.white,
+                                ),
+                              ),
+                            );
+                          },
+                        )
+                      : BlocBuilder<CreateProductBloc, CreateProductState>(
+                          builder: (context, state) {
+                            final isLoading = state is CreateProductLoading;
+                            return Align(
+                              alignment: Alignment.centerRight,
+                              child: SizedBox(
+                                width: 320,
+                                height: 46,
+                                child: ElevatedWidget(
+                                  onPressed: isLoading ? null : _save,
+                                  size: 250,
+                                  text: isLoading
+                                      ? "Saqlanmoqda..."
+                                      : "Saqlash",
+                                  backgroundColor: Colors.blueAccent,
+                                  textColor: Colors.white,
+                                ),
+                              ),
+                            );
+                          },
                         ),
-                      );
-                    },
-                  )
-                      : BlocBuilder<CreateProductBloc,
-                      CreateProductState>(
-                    builder: (context, state) {
-                      final isLoading =
-                      state is CreateProductLoading;
-                      return Align(
-                        alignment: Alignment.centerRight,
-                        child: SizedBox(
-                          width: 320,
-                          height: 46,
-                          child: ElevatedWidget(
-                            onPressed: isLoading ? null : _save,
-                            size: 250,
-                            text: isLoading
-                                ? "Saqlanmoqda..."
-                                : "Saqlash",
-                            backgroundColor: Colors.blueAccent,
-                            textColor: Colors.white,
-                          ),
-                        ),
-                      );
-                    },
-                  ),
                 ],
               ),
             ),
@@ -450,7 +423,6 @@ class _AddEditProductDialogState extends State<AddEditProductDialog> {
     return null;
   }
 }
-
 
 class _DialogImagePreview extends StatelessWidget {
   final String localPath;
@@ -470,16 +442,20 @@ class _DialogImagePreview extends StatelessWidget {
     return ClipRRect(
       borderRadius: BorderRadius.circular(12),
       child: hasLocal
-          ? Image.file(File(localPath),
-          width: 96, height: 96, fit: BoxFit.cover)
+          ? Image.file(
+              File(localPath),
+              width: 96,
+              height: 96,
+              fit: BoxFit.cover,
+            )
           : hasNetwork
           ? Image.network(
-        'https://olampardalar.uz/uploads/$networkPath',
-        width: 96,
-        height: 96,
-        fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) => _placeholder(),
-      )
+              'https://olampardalar.uz/uploads/$networkPath',
+              width: 96,
+              height: 96,
+              fit: BoxFit.cover,
+              errorBuilder: (_, __, ___) => _placeholder(),
+            )
           : _placeholder(),
     );
   }
@@ -515,8 +491,7 @@ class _LabeledField extends StatelessWidget {
       children: [
         Text(
           label,
-          style:
-          TextStyle(fontSize: 12, color: Colors.grey.shade700),
+          style: TextStyle(fontSize: 12, color: Colors.grey.shade700),
         ),
         const SizedBox(height: 8),
         TextFormField(
@@ -526,10 +501,10 @@ class _LabeledField extends StatelessWidget {
             hintText: hint,
             isDense: true,
             contentPadding: const EdgeInsets.symmetric(
-                horizontal: 14, vertical: 14),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
+              horizontal: 14,
+              vertical: 14,
             ),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
           ),
         ),
       ],

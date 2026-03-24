@@ -230,12 +230,182 @@ class _SotuvlarTable extends StatelessWidget {
             return _SotuvRow(
               sotuv: sotuv,
               mahsulot: mahsulot,
-              // Faqat birinchi mahsulotda sotuv ma'lumotlari ko'rinadi
-              showSotuvInfo:
-              sotuv.mahsulotlar.indexOf(mahsulot) == 0,
+              showSotuvInfo: sotuv.mahsulotlar.indexOf(mahsulot) == 0,
             );
           }).toList();
         }),
+      ],
+    );
+  }
+}
+
+// ===== QAYTARISHLAR BO'LIMI =====
+class _QaytarishlarTable extends StatelessWidget {
+  final List<MijozQaytarishEntity> qaytarishlar;
+  const _QaytarishlarTable({required this.qaytarishlar});
+
+  @override
+  Widget build(BuildContext context) {
+    if (qaytarishlar.isEmpty) return const SizedBox.shrink();
+
+    final headerStyle = TextStyle(
+      fontSize: 12,
+      fontWeight: FontWeight.w700,
+      color: Colors.grey.shade600,
+    );
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 16),
+        Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: Colors.red.shade50,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(Icons.keyboard_return_rounded,
+                  color: Colors.red.shade600, size: 16),
+            ),
+            const SizedBox(width: 8),
+            const Text(
+              "Qaytarishlar",
+              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700),
+            ),
+            const Spacer(),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+              decoration: BoxDecoration(
+                color: Colors.red.shade50,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Text(
+                "-\${qaytarishlar.fold<double>(0, (s, q) => s + q.jamiUsd).toStringAsFixed(2)}\$",
+                style: TextStyle(
+                    color: Colors.red.shade700,
+                    fontWeight: FontWeight.w800,
+                    fontSize: 13),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            color: Colors.grey.shade50,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Row(
+            children: [
+              SizedBox(width: 90, child: Text("Sana", style: headerStyle)),
+              SizedBox(width: 90, child: Text("To'lov turi", style: headerStyle)),
+              SizedBox(width: 70, child: Text("Metr", style: headerStyle)),
+              SizedBox(width: 70, child: Text("Pachka", style: headerStyle)),
+              SizedBox(width: 90, child: Text("Narx", style: headerStyle)),
+              SizedBox(width: 100, child: Text("Jami", style: headerStyle)),
+            ],
+          ),
+        ),
+        Divider(height: 1, color: Colors.grey.shade300),
+        ...qaytarishlar.map((q) => _QaytarishRow(qaytarish: q)).toList(),
+      ],
+    );
+  }
+}
+
+class _QaytarishRow extends StatelessWidget {
+  final MijozQaytarishEntity qaytarish;
+  const _QaytarishRow({required this.qaytarish});
+
+  Color _payColor(String turi) {
+    switch (turi) {
+      case 'terminal': return const Color(0xFF2F80ED);
+      case 'click':    return const Color(0xFF27AE60);
+      default:         return const Color(0xFFE67E22);
+    }
+  }
+
+  String _formatDate(String? sana) {
+    if (sana == null) return '';
+    try {
+      final d = DateTime.parse(sana);
+      return '\${d.day.toString().padLeft(2,"0")}.\${d.month.toString().padLeft(2,"0")}.\${d.year}';
+    } catch (_) { return sana; }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        ...qaytarish.elementlar.map((el) {
+          final isFirst = qaytarish.elementlar.indexOf(el) == 0;
+          return Padding(
+            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+            child: Row(
+              children: [
+                SizedBox(
+                  width: 90,
+                  child: Text(
+                    isFirst ? _formatDate(qaytarish.sana) : '',
+                    style: const TextStyle(fontSize: 12),
+                  ),
+                ),
+                SizedBox(
+                  width: 90,
+                  child: isFirst ? Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: _payColor(qaytarish.tolovTuri).withOpacity(0.12),
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(
+                      qaytarish.tolovTuri,
+                      style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: _payColor(qaytarish.tolovTuri)),
+                    ),
+                  ) : const SizedBox.shrink(),
+                ),
+                SizedBox(
+                  width: 70,
+                  child: Text(
+                    el.metr > 0 ? "\${el.metr}m" : '-',
+                    style: const TextStyle(fontSize: 12),
+                  ),
+                ),
+                SizedBox(
+                  width: 70,
+                  child: Text(
+                    el.pachtka > 0 ? "\${el.pachtka}" : '-',
+                    style: const TextStyle(fontSize: 12),
+                  ),
+                ),
+                SizedBox(
+                  width: 90,
+                  child: Text(
+                    "\${el.narxUsd}\$",
+                    style: const TextStyle(fontSize: 12),
+                  ),
+                ),
+                SizedBox(
+                  width: 100,
+                  child: Text(
+                    isFirst ? "-\${qaytarish.jamiUsd}\$" : '',
+                    style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.red.shade600),
+                  ),
+                ),
+              ],
+            ),
+          );
+        }).toList(),
+        Divider(height: 1, color: Colors.grey.shade200),
       ],
     );
   }

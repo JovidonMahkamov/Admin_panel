@@ -5,6 +5,7 @@ class BalansModel extends BalansEntity {
     required super.savdoJami,
     required super.xarajatJami,
     required super.kassaJami,
+    super.dokonJami,
     required super.chiqimJami,
     required super.qoldiq,
   });
@@ -15,6 +16,7 @@ class BalansModel extends BalansEntity {
       savdoJami:   (data['savdo_jami']   ?? 0).toDouble(),
       xarajatJami: (data['xarajat_jami'] ?? 0).toDouble(),
       kassaJami:   (data['kassa_jami']   ?? 0).toDouble(),
+      dokonJami:   (data['dokon_jami']   ?? 0).toDouble(),
       chiqimJami:  (data['chiqim_jami']  ?? 0).toDouble(),
       qoldiq:      (data['qoldiq']       ?? 0).toDouble(),
     );

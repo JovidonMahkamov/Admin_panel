@@ -17,9 +17,9 @@ class SotuvMahsulotModel extends SotuvMahsulotEntity {
       tovarRasm: json['tovar_rasm'],
       miqdor: json['miqdor'] ?? 0,
       pochka: json['pochka'] ?? 0,
-      metr: json['metr'] ?? 0,
-      narx: json['narx'] ?? 0,
-      jami: json['jami'] ?? 0,
+      metr:   json['metr'] ?? 0,
+      narx:   json['narx'] ?? 0,
+      jami:   json['jami'] ?? 0,
     );
   }
 }
@@ -37,14 +37,56 @@ class MijozSotuvModel extends MijozSotuvEntity {
 
   factory MijozSotuvModel.fromJson(Map<String, dynamic> json) {
     return MijozSotuvModel(
-      id: json['id'] ?? 0,
-      sana: DateTime.tryParse(json['sana'] ?? '') ?? DateTime.now(),
-      tolovTuri: json['tolov_turi'] ?? '',
-      jamiSumma: json['jami_summa'] ?? 0,
+      id:            json['id'] ?? 0,
+      sana:          DateTime.tryParse(json['sana'] ?? '') ?? DateTime.now(),
+      tolovTuri:     json['tolov_turi'] ?? '',
+      jamiSumma:     json['jami_summa'] ?? 0,
       tolovQilingan: json['tolov_qilingan'] ?? 0,
-      qarz: json['qarz'] ?? 0,
-      mahsulotlar: (json['mahsulotlar'] as List<dynamic>? ?? [])
+      qarz:          json['qarz'] ?? 0,
+      mahsulotlar:   (json['mahsulotlar'] as List<dynamic>? ?? [])
           .map((e) => SotuvMahsulotModel.fromJson(e))
+          .toList(),
+    );
+  }
+}
+
+class MijozQaytarishElementModel extends MijozQaytarishElementEntity {
+  const MijozQaytarishElementModel({
+    required super.mahsulotId,
+    required super.metr,
+    required super.dona,
+    required super.pachtka,
+    required super.narxUsd,
+  });
+
+  factory MijozQaytarishElementModel.fromJson(Map<String, dynamic> json) {
+    return MijozQaytarishElementModel(
+      mahsulotId: json['mahsulot_id'] ?? 0,
+      metr:       (json['metr'] ?? 0).toDouble(),
+      dona:       (json['dona'] ?? 0).toDouble(),
+      pachtka:    (json['pachtka'] ?? 0).toDouble(),
+      narxUsd:    (json['narx_usd'] ?? 0).toDouble(),
+    );
+  }
+}
+
+class MijozQaytarishModel extends MijozQaytarishEntity {
+  const MijozQaytarishModel({
+    required super.id,
+    required super.jamiUsd,
+    required super.tolovTuri,
+    super.sana,
+    required super.elementlar,
+  });
+
+  factory MijozQaytarishModel.fromJson(Map<String, dynamic> json) {
+    return MijozQaytarishModel(
+      id:        json['id'] ?? 0,
+      jamiUsd:   (json['jami_usd'] ?? 0).toDouble(),
+      tolovTuri: json['tolov_turi'] ?? 'naqd',
+      sana:      json['sana'],
+      elementlar: (json['elementlar'] as List<dynamic>? ?? [])
+          .map((e) => MijozQaytarishElementModel.fromJson(e))
           .toList(),
     );
   }
@@ -61,20 +103,24 @@ class CustomerDetailDataModel extends CustomerDetailDataEntity {
     required super.rasm,
     required super.yaratilgan,
     required super.sotuvlar,
+    super.qaytarishlar,
   });
 
   factory CustomerDetailDataModel.fromJson(Map<String, dynamic> json) {
     return CustomerDetailDataModel(
-      id: json['id'] ?? 0,
-      fish: json['fish'] ?? '',
-      telefon: json['telefon'] ?? '',
-      manzil: json['manzil'] ?? '',
-      mijozTuri: json['mijoz_turi'] ?? '',
-      qarzdorlik: json['qarzdorlik'] ?? 0,
-      rasm: json['rasm'],
-      yaratilgan: DateTime.tryParse(json['yaratilgan'] ?? '') ?? DateTime.now(),
-      sotuvlar: (json['sotuvlar'] as List<dynamic>? ?? [])
+      id:          json['id'] ?? 0,
+      fish:        json['fish'] ?? '',
+      telefon:     json['telefon'] ?? '',
+      manzil:      json['manzil'] ?? '',
+      mijozTuri:   json['mijoz_turi'] ?? '',
+      qarzdorlik:  json['qarzdorlik'] ?? 0,
+      rasm:        json['rasm'],
+      yaratilgan:  DateTime.tryParse(json['yaratilgan'] ?? '') ?? DateTime.now(),
+      sotuvlar:    (json['sotuvlar'] as List<dynamic>? ?? [])
           .map((e) => MijozSotuvModel.fromJson(e))
+          .toList(),
+      qaytarishlar: (json['qaytarishlar'] as List<dynamic>? ?? [])
+          .map((e) => MijozQaytarishModel.fromJson(e))
           .toList(),
     );
   }
@@ -90,8 +136,8 @@ class GetCustomerDetailModel extends GetCustomerDetailEntity {
   factory GetCustomerDetailModel.fromJson(Map<String, dynamic> json) {
     return GetCustomerDetailModel(
       message: json['message'] ?? '',
-      data: CustomerDetailDataModel.fromJson(json['data'] ?? {}),
-      status: json['status'] ?? 0,
+      data:    CustomerDetailDataModel.fromJson(json['data'] ?? {}),
+      status:  json['status'] ?? 0,
     );
   }
 }

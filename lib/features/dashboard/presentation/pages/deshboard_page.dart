@@ -1,3 +1,4 @@
+import 'package:admin_panel/features/dashboard/domain/entity/dashboard_entity.dart';
 import 'package:admin_panel/features/dashboard/presentation/bloc/dashboard_event.dart';
 import 'package:admin_panel/features/dashboard/presentation/bloc/finish_sales/finish_sales_bloc.dart';
 import 'package:admin_panel/features/dashboard/presentation/bloc/finish_sales/finish_sales_state.dart';
@@ -387,6 +388,12 @@ class _DashboardPageState extends State<DashboardPage> {
                             terminal: data.terminal,
                             click: data.click,
                             jami: data.jami,
+                            kirimNaqd: data.kirimNaqd,
+                            kirimTerminal: data.kirimTerminal,
+                            kirimClick: data.kirimClick,
+                            kirimJami: data.kirimJami,
+                            umumiy: data.umumiy,
+                            qaytarishJami: data.qaytarishJami,
                             isTransferLoading: isTransferLoading,
                             onCardTap: (tolovTuri, amount) {
                               _showTransferDialog(
@@ -395,6 +402,10 @@ class _DashboardPageState extends State<DashboardPage> {
                               );
                             },
                           ),
+                          if (data.qaytarishlar.isNotEmpty) ...[
+                            SizedBox(height: 20.h),
+                            _QaytarishlarSection(qaytarishlar: data.qaytarishlar),
+                          ],
                           SizedBox(height: 20.h),
 
                           if (isWorkerLoading)
@@ -492,6 +503,12 @@ class _DashboardSummarySection extends StatelessWidget {
   final num terminal;
   final num click;
   final num jami;
+  final num kirimNaqd;
+  final num kirimTerminal;
+  final num kirimClick;
+  final num kirimJami;
+  final num umumiy;
+  final num qaytarishJami;
   final bool isTransferLoading;
   final void Function(String tolovTuri, num amount) onCardTap;
 
@@ -500,6 +517,12 @@ class _DashboardSummarySection extends StatelessWidget {
     required this.terminal,
     required this.click,
     required this.jami,
+    this.kirimNaqd = 0,
+    this.kirimTerminal = 0,
+    this.kirimClick = 0,
+    this.kirimJami = 0,
+    this.umumiy = 0,
+    this.qaytarishJami = 0,
     required this.isTransferLoading,
     required this.onCardTap,
   });
@@ -548,6 +571,64 @@ class _DashboardSummarySection extends StatelessWidget {
             style: TextStyle(fontSize: 12.sp, color: Colors.grey.shade500),
           ),
           SizedBox(height: 14.h),
+
+          // ✅ UMUMIY KIRIM — katta karta
+          Container(
+            width: double.infinity,
+            padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 16.h),
+            margin: EdgeInsets.only(bottom: 14.h),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF0B74E5), Color(0xFF1A9FFF)],
+                begin: Alignment.centerLeft,
+                end: Alignment.centerRight,
+              ),
+              borderRadius: BorderRadius.circular(16.r),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.account_balance_wallet_rounded,
+                    color: Colors.white, size: 32.sp),
+                SizedBox(width: 14.w),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text("Umumiy kirim",
+                          style: TextStyle(
+                              color: Colors.white70,
+                              fontSize: 13.sp,
+                              fontWeight: FontWeight.w600)),
+                      Text(
+                        "${jami + kirimJami}\$",
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 24.sp,
+                            fontWeight: FontWeight.w800),
+                      ),
+                    ],
+                  ),
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text("Savdo: $jami\$",
+                        style: TextStyle(
+                            color: Colors.white70, fontSize: 12.sp)),
+                    if (kirimJami > 0)
+                      Text("Kirim: +$kirimJami\$",
+                          style: TextStyle(
+                              color: Colors.white70, fontSize: 12.sp)),
+                    if (qaytarishJami > 0)
+                      Text("Qaytarish: -$qaytarishJami\$",
+                          style: TextStyle(
+                              color: Colors.orange.shade200, fontSize: 12.sp)),
+                  ],
+                ),
+              ],
+            ),
+          ),
+
           LayoutBuilder(
             builder: (context, constraints) {
               if (constraints.maxWidth < 700) {
@@ -698,18 +779,25 @@ class _MoneyCard extends StatelessWidget {
   final String title;
   final String amount;
   final bool isPrimary;
+  final Color? color;
 
   const _MoneyCard({
     required this.title,
     required this.amount,
     this.isPrimary = false,
+    this.color,
   });
 
   @override
   Widget build(BuildContext context) {
-    final bgColor =
-    isPrimary ? const Color(0xFF0B74E5) : const Color(0xFFF2F7FF);
-    final textColor = isPrimary ? Colors.white : const Color(0xFF0B74E5);
+    final bgColor = isPrimary
+        ? const Color(0xFF0B74E5)
+        : color != null
+        ? color!.withOpacity(0.1)
+        : const Color(0xFFF2F7FF);
+    final textColor = isPrimary
+        ? Colors.white
+        : color ?? const Color(0xFF0B74E5);
 
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
@@ -761,6 +849,142 @@ class WorkerRow {
     required this.phone,
     required this.amount,
   });
+}
+
+class _QaytarishlarSection extends StatelessWidget {
+  final List<QaytarishEntity> qaytarishlar;
+  const _QaytarishlarSection({required this.qaytarishlar});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(20.w),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(22.r),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 18,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.red.shade50,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(Icons.keyboard_return_rounded,
+                    color: Colors.red.shade600, size: 20),
+              ),
+              SizedBox(width: 10.w),
+              Text(
+                "Bugungi qaytarishlar",
+                style: TextStyle(
+                    fontSize: 18.sp,
+                    fontWeight: FontWeight.w700,
+                    color: const Color(0xFF111827)),
+              ),
+              const Spacer(),
+              Container(
+                padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 4.h),
+                decoration: BoxDecoration(
+                  color: Colors.red.shade50,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Text(
+                  "-${qaytarishlar.fold<num>(0, (s, q) => s + q.jamiUsd)}\$",
+                  style: TextStyle(
+                      color: Colors.red.shade700,
+                      fontWeight: FontWeight.w800,
+                      fontSize: 14.sp),
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 14.h),
+          ...qaytarishlar.map((q) => _QaytarishRow(qaytarish: q)).toList(),
+        ],
+      ),
+    );
+  }
+}
+
+class _QaytarishRow extends StatelessWidget {
+  final QaytarishEntity qaytarish;
+  const _QaytarishRow({required this.qaytarish});
+
+  Color _payColor(String turi) {
+    switch (turi) {
+      case 'terminal': return const Color(0xFF2F80ED);
+      case 'click':    return const Color(0xFF27AE60);
+      default:         return const Color(0xFFE67E22);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: EdgeInsets.only(bottom: 10.h),
+      padding: EdgeInsets.symmetric(horizontal: 14.w, vertical: 12.h),
+      decoration: BoxDecoration(
+        color: Colors.red.shade50.withOpacity(0.5),
+        borderRadius: BorderRadius.circular(12.r),
+        border: Border.all(color: Colors.red.shade100),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.person_outline, color: Colors.grey.shade600, size: 18),
+          SizedBox(width: 8.w),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  qaytarish.mijozFish ?? "${qaytarish.mijozId}",
+                  style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13.sp),
+                ),
+                Text(
+                  "${qaytarish.tolovTuri}",
+                  style: TextStyle(color: Colors.grey.shade500, fontSize: 11.sp),
+                ),
+              ],
+            ),
+          ),
+          Container(
+            padding: EdgeInsets.symmetric(horizontal: 10.w, vertical: 3.h),
+            decoration: BoxDecoration(
+              color: _payColor(qaytarish.tolovTuri).withOpacity(0.1),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Text(
+              qaytarish.tolovTuri,
+              style: TextStyle(
+                  color: _payColor(qaytarish.tolovTuri),
+                  fontWeight: FontWeight.w700,
+                  fontSize: 11.sp),
+            ),
+          ),
+          SizedBox(width: 10.w),
+          Text(
+            "${qaytarish.jamiUsd}\$",
+            style: TextStyle(
+                fontWeight: FontWeight.w800,
+                fontSize: 14.sp,
+                color: Colors.red.shade600),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class _DashboardWorkersSection extends StatelessWidget {

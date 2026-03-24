@@ -10,21 +10,59 @@ class DashboardEntity {
   });
 }
 
+class QaytarishEntity {
+  final int id;
+  final int mijozId;
+  final String? mijozFish;
+  final num jamiUsd;
+  final String tolovTuri;
+  final String sana;
+
+  const QaytarishEntity({
+    required this.id,
+    required this.mijozId,
+    this.mijozFish,
+    required this.jamiUsd,
+    required this.tolovTuri,
+    required this.sana,
+  });
+}
+
 class DashboardDataEntity {
   final num naqd;
   final num terminal;
   final num click;
   final num jami;
+  final num kirimNaqd;
+  final num kirimTerminal;
+  final num kirimClick;
+  final num kirimJami;
+  final num umumiy;
+  final num qaytarishNaqd;
+  final num qaytarishTerminal;
+  final num qaytarishClick;
+  final num qaytarishJami;
   final List<WorkerSummaryEntity> ishchilar;
   final List<SaleEntity> sotuvlar;
+  final List<QaytarishEntity> qaytarishlar;
 
   const DashboardDataEntity({
     required this.naqd,
     required this.terminal,
     required this.click,
     required this.jami,
+    this.kirimNaqd = 0,
+    this.kirimTerminal = 0,
+    this.kirimClick = 0,
+    this.kirimJami = 0,
+    this.umumiy = 0,
+    this.qaytarishNaqd = 0,
+    this.qaytarishTerminal = 0,
+    this.qaytarishClick = 0,
+    this.qaytarishJami = 0,
     required this.ishchilar,
     required this.sotuvlar,
+    this.qaytarishlar = const [],
   });
 }
 

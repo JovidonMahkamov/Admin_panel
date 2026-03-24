@@ -1,4 +1,3 @@
-// Sotuv ichidagi mahsulot entity
 class SotuvMahsulotEntity {
   final String tovarNomi;
   final String? tovarRasm;
@@ -19,7 +18,6 @@ class SotuvMahsulotEntity {
   });
 }
 
-// Bitta sotuv entity
 class MijozSotuvEntity {
   final int id;
   final DateTime sana;
@@ -40,7 +38,38 @@ class MijozSotuvEntity {
   });
 }
 
-// Mijoz detail entity (sotuvlar bilan)
+class MijozQaytarishElementEntity {
+  final int mahsulotId;
+  final double metr;
+  final double dona;
+  final double pachtka;
+  final double narxUsd;
+
+  const MijozQaytarishElementEntity({
+    required this.mahsulotId,
+    required this.metr,
+    required this.dona,
+    required this.pachtka,
+    required this.narxUsd,
+  });
+}
+
+class MijozQaytarishEntity {
+  final int id;
+  final double jamiUsd;
+  final String tolovTuri;
+  final String? sana;
+  final List<MijozQaytarishElementEntity> elementlar;
+
+  const MijozQaytarishEntity({
+    required this.id,
+    required this.jamiUsd,
+    required this.tolovTuri,
+    this.sana,
+    required this.elementlar,
+  });
+}
+
 class GetCustomerDetailEntity {
   final String message;
   final CustomerDetailDataEntity data;
@@ -63,6 +92,7 @@ class CustomerDetailDataEntity {
   final String? rasm;
   final DateTime yaratilgan;
   final List<MijozSotuvEntity> sotuvlar;
+  final List<MijozQaytarishEntity> qaytarishlar;
 
   const CustomerDetailDataEntity({
     required this.id,
@@ -74,5 +104,6 @@ class CustomerDetailDataEntity {
     required this.rasm,
     required this.yaratilgan,
     required this.sotuvlar,
+    this.qaytarishlar = const [],
   });
 }

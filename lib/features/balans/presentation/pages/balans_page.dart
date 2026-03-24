@@ -1,4 +1,3 @@
-
 import 'package:admin_panel/features/balans/presentation/bloc/balans_event.dart';
 import 'package:admin_panel/features/balans/presentation/bloc/get_balans/balans_bloc.dart';
 import 'package:admin_panel/features/balans/presentation/bloc/get_balans/balans_state.dart';
@@ -225,6 +224,14 @@ class _BalansPageState extends State<BalansPage> {
                                 amount: b.kassaJami,
                                 icon: Icons.shopping_cart_outlined,
                                 color: Colors.purple.shade700,
+                              ),
+                              Divider(
+                                  height: 24.h, color: Colors.grey.shade100),
+                              _DetailRow(
+                                label: "Dkon chiqimi",
+                                amount: b.dokonJami,
+                                icon: Icons.store_outlined,
+                                color: Colors.teal.shade700,
                               ),
                             ],
                           ),
