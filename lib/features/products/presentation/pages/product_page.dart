@@ -24,10 +24,22 @@ class ProductPage extends StatefulWidget {
 }
 
 class _ProductPageState extends State<ProductPage> {
+  final TextEditingController _searchCtrl = TextEditingController();
+  String _searchQuery = '';
+
   @override
   void initState() {
     super.initState();
     context.read<GetProductsBloc>().add(const GetProductsE());
+    _searchCtrl.addListener(() {
+      setState(() => _searchQuery = _searchCtrl.text.trim().toLowerCase());
+    });
+  }
+
+  @override
+  void dispose() {
+    _searchCtrl.dispose();
+    super.dispose();
   }
 
   Future<void> _openAddProductDialog() async {
@@ -252,6 +264,36 @@ class _ProductPageState extends State<ProductPage> {
                             ],
                           ),
                           const SizedBox(height: 14),
+                          // ===== QIDIRUV =====
+                          TextField(
+                            controller: _searchCtrl,
+                            decoration: InputDecoration(
+                              hintText: "Tovar nomi yoki kodi bo'yicha qidirish...",
+                              hintStyle: TextStyle(fontSize: 14, color: Colors.grey.shade400),
+                              prefixIcon: const Icon(Icons.search, color: Colors.grey),
+                              suffixIcon: _searchQuery.isNotEmpty
+                                  ? IconButton(
+                                icon: const Icon(Icons.close, color: Colors.grey),
+                                onPressed: () {
+                                  _searchCtrl.clear();
+                                  setState(() => _searchQuery = '');
+                                },
+                              )
+                                  : null,
+                              filled: true,
+                              fillColor: Colors.grey.shade50,
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide(color: Colors.grey.shade200),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: const BorderSide(color: Color(0xFF0B74E5)),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 14),
                           const Divider(height: 1),
                           const SizedBox(height: 10),
                           BlocBuilder<GetProductsBloc, GetProductsState>(
@@ -269,9 +311,16 @@ class _ProductPageState extends State<ProductPage> {
                                 );
                               }
                               if (state is GetProductsSuccess) {
-                                final rows = state.productEntity
+                                final allRows = state.productEntity
                                     .map((e) => e.toProductRow())
                                     .toList();
+                                final rows = _searchQuery.isEmpty
+                                    ? allRows
+                                    : allRows.where((r) =>
+                                r.productName.toLowerCase().contains(_searchQuery) ||
+                                    r.qrCodePath.toLowerCase().contains(_searchQuery) ||
+                                    r.metrPrice.toLowerCase().contains(_searchQuery)
+                                ).toList();
                                 if (rows.isEmpty) {
                                   return const Padding(
                                     padding: EdgeInsets.all(24),
