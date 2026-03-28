@@ -397,9 +397,9 @@ class _SummarySection extends StatelessWidget {
                   color: const Color(0xFF16A34A),
                 ),
                 _SummaryCard(
-                  icon: Icons.confirmation_number_outlined,
-                  label: "Jami dona",
-                  value: "${summary.jamiMiqdor} ta",
+                  icon: Icons.price_check_rounded,
+                  label: "Sotish narxi",
+                  value: "${summary.adminJamiNarx.toStringAsFixed(2)}\$",
                   color: const Color(0xFFD97706),
                 ),
                 _SummaryCard(
