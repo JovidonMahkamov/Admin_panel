@@ -16,6 +16,8 @@ class GetCashExpenseDataEntity {
   final String doKon;
   final String mahsulotNomi;
   final num summa;
+  final num qarzQoldiq;
+  final bool toliqTolangan;
   final String valyuta;
   final bool sms;
   final String izoh;
@@ -27,6 +29,8 @@ class GetCashExpenseDataEntity {
     required this.doKon,
     required this.mahsulotNomi,
     required this.summa,
+    this.qarzQoldiq = 0,
+    this.toliqTolangan = false,
     required this.valyuta,
     required this.sms,
     required this.izoh,

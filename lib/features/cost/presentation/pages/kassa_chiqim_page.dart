@@ -13,6 +13,9 @@ import 'package:admin_panel/features/cost/presentation/widgets/kassa_expense_for
 import 'package:admin_panel/features/cost/presentation/widgets/kassa_models.dart';
 import 'package:admin_panel/features/cost/presentation/widgets/payment_tabs_wg.dart';
 import 'package:flutter/material.dart';
+import 'package:admin_panel/core/networks/api_urls.dart';
+import 'package:admin_panel/core/networks/dio_client.dart';
+import 'package:admin_panel/core/di/services_locator.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class KassaChiqimPage extends StatefulWidget {
@@ -92,6 +95,8 @@ class _KassaChiqimPageState extends State<KassaChiqimPage> {
         doKon: e.doKon,
         mahsulotlar: e.mahsulotNomi.isNotEmpty ? e.mahsulotNomi.split(', ') : [],
         summa: e.summa,
+        qarzQoldiq: e.qarzQoldiq,
+        toliqTolangan: e.toliqTolangan,
         sms: e.sms,
         izoh: e.izoh,
       );
@@ -156,6 +161,78 @@ class _KassaChiqimPageState extends State<KassaChiqimPage> {
       summa: result.summa,
       tolovTuri: result.paymentType.name,
     ));
+  }
+
+  Future<void> onTolash(KassaExpenseRowData row) async {
+    final ctrl = TextEditingController();
+    String selectedPayType = 'naqd';
+    final result = await showDialog<double>(
+      context: context,
+      builder: (_) => StatefulBuilder(
+        builder: (ctx, setState) => AlertDialog(
+          title: Text("To'lov: ${row.doKon}"),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text("Qarz qoldiq: ${row.qarzQoldiq}\$", style: const TextStyle(fontWeight: FontWeight.w700, color: Colors.red)),
+              const SizedBox(height: 12),
+              DropdownButtonFormField<String>(
+                value: selectedPayType,
+                decoration: const InputDecoration(labelText: "To'lov turi", border: OutlineInputBorder()),
+                items: const [
+                  DropdownMenuItem(value: 'naqd', child: Text('Naqd')),
+                  DropdownMenuItem(value: 'terminal', child: Text('Terminal')),
+                  DropdownMenuItem(value: 'click', child: Text('Click')),
+                ],
+                onChanged: (v) => setState(() => selectedPayType = v!),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: ctrl,
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                decoration: InputDecoration(
+                  labelText: "To'lov summasi (\$)",
+                  hintText: "Max: ${row.qarzQoldiq}\$",
+                  border: const OutlineInputBorder(),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text("Bekor")),
+            ElevatedButton(
+              onPressed: () {
+                final v = double.tryParse(ctrl.text.trim()) ?? 0;
+                if (v > 0) Navigator.pop(ctx, v);
+              },
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+              child: const Text("Saqlash", style: TextStyle(color: Colors.white)),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (result == null || !mounted) return;
+
+    try {
+      final dio = sl<DioClient>();
+      await dio.post(
+        '${ApiUrls.postKassa}/${row.id}/tolov',
+        data: {'summa': result, 'tolov_turi': selectedPayType},
+      );
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("To'lov amalga oshirildi: ${result}\$"), backgroundColor: Colors.green),
+      );
+      _loadAll();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Xatolik yuz berdi"), backgroundColor: Colors.red),
+        );
+      }
+    }
   }
 
   Future<void> onDelete(KassaExpenseRowData row) async {
@@ -322,6 +399,7 @@ class _KassaChiqimPageState extends State<KassaChiqimPage> {
                             rows: _currentRows,
                             onEdit: onEdit,
                             onDelete: onDelete,
+                            onTolash: onTolash,
                           ),
                       ],
                     ),
@@ -340,11 +418,13 @@ class _KassaTableWg extends StatelessWidget {
   final List<KassaExpenseRowData> rows;
   final ValueChanged<KassaExpenseRowData> onEdit;
   final ValueChanged<KassaExpenseRowData> onDelete;
+  final ValueChanged<KassaExpenseRowData> onTolash;
 
   const _KassaTableWg({
     required this.rows,
     required this.onEdit,
     required this.onDelete,
+    required this.onTolash,
   });
 
   @override
@@ -368,10 +448,11 @@ class _KassaTableWg extends StatelessWidget {
                   SizedBox(width: 90, child: Text("Sana", style: headerStyle)),
                   SizedBox(width: 110, child: Text("To'lov turi", style: headerStyle)),
                   SizedBox(width: 150, child: Text("Do'kon nomi", style: headerStyle)),
-                  SizedBox(width: 180, child: Text("Mahsulot", style: headerStyle)),
-                  SizedBox(width: 120, child: Text("Summa", style: headerStyle)),
-                  SizedBox(width: 180, child: Text("Izoh", style: headerStyle)),
-                  const SizedBox(width: 70),
+                  SizedBox(width: 160, child: Text("Mahsulot", style: headerStyle)),
+                  SizedBox(width: 110, child: Text("Summa", style: headerStyle)),
+                  SizedBox(width: 110, child: Text("Qarz qoldiq", style: headerStyle.copyWith(color: Colors.red.shade700))),
+                  SizedBox(width: 150, child: Text("Izoh", style: headerStyle)),
+                  const SizedBox(width: 130),
                 ],
               ),
             ),
@@ -387,6 +468,7 @@ class _KassaTableWg extends StatelessWidget {
                 row: r,
                 onEdit: () => onEdit(r),
                 onDelete: () => onDelete(r),
+                onTolash: () => onTolash(r),
               )),
           ],
         ),
@@ -399,8 +481,9 @@ class _KassaRow extends StatelessWidget {
   final KassaExpenseRowData row;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
+  final VoidCallback onTolash;
 
-  const _KassaRow({required this.row, required this.onEdit, required this.onDelete});
+  const _KassaRow({required this.row, required this.onEdit, required this.onDelete, required this.onTolash});
 
   @override
   Widget build(BuildContext context) {
@@ -414,13 +497,27 @@ class _KassaRow extends StatelessWidget {
               SizedBox(width: 110, child: Text(row.paymentType.label, style: const TextStyle(fontSize: 12))),
               SizedBox(width: 150, child: Text(row.doKon, style: const TextStyle(fontSize: 12), overflow: TextOverflow.ellipsis)),
               SizedBox(width: 180, child: Text(row.mahsulotlar.join(', '), style: const TextStyle(fontSize: 12), overflow: TextOverflow.ellipsis)),
-              SizedBox(width: 120, child: Text(formatAmount(row.summa), style: const TextStyle(fontSize: 12))),
-              SizedBox(width: 180, child: Text(row.izoh, style: const TextStyle(fontSize: 12), overflow: TextOverflow.ellipsis)),
+              SizedBox(width: 110, child: Text(formatAmount(row.summa), style: const TextStyle(fontSize: 12))),
               SizedBox(
-                width: 70,
+                width: 110,
+                child: Text(
+                  row.toliqTolangan ? "To'liq to'landi" : formatAmount(row.qarzQoldiq),
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: row.toliqTolangan ? Colors.green : Colors.red.shade600,
+                  ),
+                ),
+              ),
+              SizedBox(width: 150, child: Text(row.izoh, style: const TextStyle(fontSize: 12), overflow: TextOverflow.ellipsis)),
+              SizedBox(
+                width: 130,
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
+                    if (!row.toliqTolangan)
+                      _IconInk(icon: Icons.payment_rounded, color: Colors.green, onTap: onTolash),
+                    const SizedBox(width: 4),
                     _IconInk(icon: Icons.edit_outlined, color: const Color(0xFF1877F2), onTap: onEdit),
                     const SizedBox(width: 4),
                     _IconInk(icon: Icons.delete_outline_rounded, color: Colors.red, onTap: onDelete),

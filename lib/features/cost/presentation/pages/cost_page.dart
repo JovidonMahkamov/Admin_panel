@@ -65,7 +65,7 @@ class _CostPageState extends State<CostPage> {
                       onTap: _onHarajatChiqimTap,
                     ),
                     _ExpenseTypeCard(
-                      title: "Qarz chiqim",
+                      title: "Haqdorlik",
                       description: "Tovar sotib olish va boshqa kassa chiqimlarini qayd etish.",
                       icon: Icons.shopping_cart_outlined,
                       iconBg: const Color(0xFFEAF3FF),

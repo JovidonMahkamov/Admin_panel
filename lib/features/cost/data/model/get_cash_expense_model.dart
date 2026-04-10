@@ -32,6 +32,8 @@ class GetCashExpenseDataModel extends GetCashExpenseDataEntity {
   const GetCashExpenseDataModel({
     required super.id,
     required super.tolovTuri,
+    super.qarzQoldiq,
+    super.toliqTolangan,
     required super.doKon,
     required super.mahsulotNomi,
     required super.summa,
@@ -48,6 +50,8 @@ class GetCashExpenseDataModel extends GetCashExpenseDataEntity {
       doKon: json['do_kon'] ?? '',
       mahsulotNomi: json['mahsulot_nomi'] ?? '',
       summa: json['summa'] ?? 0,
+      qarzQoldiq: json['qarz_qoldiq'] ?? json['summa'] ?? 0,
+      toliqTolangan: json['to_liq_tolangan'] ?? false,
       valyuta: json['valyuta'] ?? '',
       sms: json['sms'] ?? false,
       izoh: json['izoh'] ?? '',

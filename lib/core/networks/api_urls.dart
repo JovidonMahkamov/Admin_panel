@@ -33,6 +33,10 @@ abstract class ApiUrls {
   ///Tarix
   static const String getHistory = '/tarix/';
 
+  ///Harajat Oylik
+  static const String getHarajatOylik = '/xarajat/harajat/oylik';
+  static const String postHarajatOylik = '/xarajat/harajat/oylik';
+  static const String getHarajatTarix = '/xarajat/harajat/tarix';
   ///Harajat
   static const String getHarajat = '/xarajat/harajat';
   static const String postHarajat = '/xarajat/harajat';
