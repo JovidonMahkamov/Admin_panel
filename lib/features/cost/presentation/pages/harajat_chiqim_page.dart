@@ -114,8 +114,8 @@ class _HarajatChiqimPageState extends State<HarajatChiqimPage> {
     try {
       final dio = sl<DioClient>();
       final now = DateTime.now();
-      final oy = '\${now.year}-\${now.month.toString().padLeft(2, "0")}';
-      await dio.post(ApiUrls.postHarajatOylik, data: {'oy': oy});
+      final oyStr = now.year.toString() + '-' + now.month.toString().padLeft(2, '0');
+      await dio.post(ApiUrls.postHarajatOylik, data: {'oy': oyStr});
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Oylik yakunlandi"), backgroundColor: Colors.green),
