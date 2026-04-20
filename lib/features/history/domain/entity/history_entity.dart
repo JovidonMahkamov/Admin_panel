@@ -16,6 +16,7 @@ class HistoryDetailEntity {
   final int oyRaqam;
   final int yil;
   final num jamiSumma;
+  final num foyda;
   final int sotuvlarSoni;
 
   const HistoryDetailEntity({
@@ -24,6 +25,7 @@ class HistoryDetailEntity {
     required this.oyRaqam,
     required this.yil,
     required this.jamiSumma,
+    this.foyda = 0,
     required this.sotuvlarSoni,
   });
 }

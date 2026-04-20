@@ -218,6 +218,7 @@ class _MonthlySellingPageState extends State<MonthlySellingPage> {
             final monthlyEntity = state.monthlySalesEntity;
             final days = _mapMonthlyData(monthlyEntity);
             final totalAmount = _formatMoney(monthlyEntity.data.jamiSumma);
+            final foyda = monthlyEntity.data.foyda;
             final monthLabel =
                 "${monthlyEntity.data.oy.toString().padLeft(2, '0')}.${monthlyEntity.data.yil}";
             final oyParam =
@@ -343,23 +344,45 @@ class _MonthlySellingPageState extends State<MonthlySellingPage> {
                                   color: const Color(0xFFEAF4FF),
                                   borderRadius: BorderRadius.circular(12),
                                 ),
-                                child: Row(
+                                child: Column(
                                   children: [
-                                    const Text(
-                                      "Umumiy summa:",
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.w700,
-                                        color: Color(0xFF0B74E5),
-                                      ),
+                                    Row(
+                                      children: [
+                                        const Text(
+                                          "Umumiy summa:",
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.w700,
+                                            color: Color(0xFF0B74E5),
+                                          ),
+                                        ),const Spacer(),
+                                        Text(
+                                          totalAmount,
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.w800,
+                                            color: Color(0xFF0B74E5),
+                                          ),
+                                        ),
+                                      ],
                                     ),
-                                    const Spacer(),
-                                    Text(
-                                      totalAmount,
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.w800,
-                                        color: Color(0xFF0B74E5),
-                                      ),
+                                    Row(
+                                      children: [
+                                        const Text(
+                                          "Oylik foida:",
+                                          style: TextStyle(
+                                            fontWeight: FontWeight.w700,
+                                            color: Color(0xFF0B74E5),
+                                          ),
+                                        ),const Spacer(),
+                                        Text(
+                                          foyda.toString(),
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.w800,
+                                            color: Color(0xFF0B74E5),
+                                          ),
+                                        ),
+                                      ],
                                     ),
+
                                   ],
                                 ),
                               ),

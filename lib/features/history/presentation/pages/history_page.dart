@@ -190,6 +190,13 @@ class _HistoryTable extends StatelessWidget {
                     child: Text("Oylik savdo summasi", style: headerStyle),
                   ),
                 ),
+                Expanded(
+                  flex: 3,
+                  child: Align(
+                    alignment: Alignment.centerRight,
+                    child: Text("Foyda", style: headerStyle.copyWith(color: Colors.green.shade700)),
+                  ),
+                ),
               ],
             ),
           ),
@@ -224,7 +231,14 @@ class _HistoryTable extends StatelessWidget {
                 flex: 4,
                 child: Align(
                   alignment: Alignment.centerRight,
-                  child: Text("Oylik savdo summasi", style: headerStyle),
+                  child: Text("Oylik savdo", style: headerStyle),
+                ),
+              ),
+              Expanded(
+                flex: 3,
+                child: Align(
+                  alignment: Alignment.centerRight,
+                  child: Text("Foyda", style: headerStyle),
                 ),
               ),
             ],
@@ -268,6 +282,19 @@ class _HistoryTable extends StatelessWidget {
                         child: Text(
                           formatMoney(r.jamiSumma),
                           style: const TextStyle(fontWeight: FontWeight.w600),
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      flex: 3,
+                      child: Align(
+                        alignment: Alignment.centerRight,
+                        child: Text(
+                          r.foyda > 0 ? "+${r.foyda.toStringAsFixed(2)}\$" : "-",
+                          style: TextStyle(
+                            fontWeight: FontWeight.w700,
+                            color: r.foyda > 0 ? Colors.green.shade600 : Colors.grey,
+                          ),
                         ),
                       ),
                     ),

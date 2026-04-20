@@ -42,6 +42,7 @@ class DashboardDataEntity {
   final num qaytarishTerminal;
   final num qaytarishClick;
   final num qaytarishJami;
+  final num foyda;
   final List<WorkerSummaryEntity> ishchilar;
   final List<SaleEntity> sotuvlar;
   final List<QaytarishEntity> qaytarishlar;
@@ -60,6 +61,7 @@ class DashboardDataEntity {
     this.qaytarishTerminal = 0,
     this.qaytarishClick = 0,
     this.qaytarishJami = 0,
+    this.foyda = 0,
     required this.ishchilar,
     required this.sotuvlar,
     this.qaytarishlar = const [],

@@ -53,6 +53,7 @@ class DashboardDataModel extends DashboardDataEntity {
     super.qaytarishTerminal,
     super.qaytarishClick,
     super.qaytarishJami,
+    super.foyda,
     required List<WorkerSummaryModel> super.ishchilar,
     required List<SaleModel> super.sotuvlar,
     super.qaytarishlar,
@@ -73,6 +74,7 @@ class DashboardDataModel extends DashboardDataEntity {
       qaytarishTerminal: json['qaytarish_terminal'] ?? 0,
       qaytarishClick:    json['qaytarish_click'] ?? 0,
       qaytarishJami:     json['qaytarish_jami'] ?? 0,
+      foyda:             json['foyda'] ?? 0,
       ishchilar: (json['ishchilar'] as List<dynamic>? ?? [])
           .map((e) => WorkerSummaryModel.fromJson(e))
           .toList(),

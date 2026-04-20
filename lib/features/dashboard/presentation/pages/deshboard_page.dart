@@ -394,6 +394,7 @@ class _DashboardPageState extends State<DashboardPage> {
                             kirimJami: data.kirimJami,
                             umumiy: data.umumiy,
                             qaytarishJami: data.qaytarishJami,
+                            foyda: data.foyda,
                             isTransferLoading: isTransferLoading,
                             onCardTap: (tolovTuri, amount) {
                               _showTransferDialog(
@@ -509,6 +510,7 @@ class _DashboardSummarySection extends StatelessWidget {
   final num kirimJami;
   final num umumiy;
   final num qaytarishJami;
+  final num foyda;
   final bool isTransferLoading;
   final void Function(String tolovTuri, num amount) onCardTap;
 
@@ -523,6 +525,7 @@ class _DashboardSummarySection extends StatelessWidget {
     this.kirimJami = 0,
     this.umumiy = 0,
     this.qaytarishJami = 0,
+    this.foyda = 0,
     required this.isTransferLoading,
     required this.onCardTap,
   });
@@ -623,11 +626,39 @@ class _DashboardSummarySection extends StatelessWidget {
                       Text("Qaytarish: -$qaytarishJami\$",
                           style: TextStyle(
                               color: Colors.orange.shade200, fontSize: 12.sp)),
+                    if (foyda > 0)
+                      Text("Foyda: +$foyda\$",
+                          style: TextStyle(
+                              color: Colors.greenAccent.shade200, fontSize: 12.sp)),
                   ],
                 ),
               ],
             ),
           ),
+
+          // Foyda kartochkasi
+          if (foyda > 0)
+            Container(
+              width: double.infinity,
+              margin: EdgeInsets.only(bottom: 14.h),
+              padding: EdgeInsets.symmetric(horizontal: 20.w, vertical: 12.h),
+              decoration: BoxDecoration(
+                color: Colors.green.shade50,
+                borderRadius: BorderRadius.circular(14.r),
+                border: Border.all(color: Colors.green.shade200),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.trending_up_rounded, color: Colors.green.shade600, size: 24),
+                  SizedBox(width: 12.w),
+                  Text("Bugungi foyda:",
+                      style: TextStyle(fontSize: 14.sp, color: Colors.green.shade700, fontWeight: FontWeight.w600)),
+                  const Spacer(),
+                  Text("+$foyda\$",
+                      style: TextStyle(fontSize: 18.sp, color: Colors.green.shade700, fontWeight: FontWeight.w800)),
+                ],
+              ),
+            ),
 
           LayoutBuilder(
             builder: (context, constraints) {

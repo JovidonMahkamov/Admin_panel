@@ -23,6 +23,7 @@ class MonthlySalesDataModel extends MonthlySalesDataEntity {
     required super.yil,
     required super.oy,
     required super.jamiSumma,
+    required super.foyda,
     required super.sotuvlarSoni,
     required List<MonthlySaleModel> super.sotuvlar,
   });
@@ -32,6 +33,7 @@ class MonthlySalesDataModel extends MonthlySalesDataEntity {
       yil: _toInt(json['yil']),
       oy: _toInt(json['oy']),
       jamiSumma: _toInt(json['jami_summa']),
+      foyda: _toInt(json['foyda']),
       sotuvlarSoni: _toInt(json['sotuvlar_soni']),
       sotuvlar: (json['sotuvlar'] as List<dynamic>? ?? [])
           .map((e) => MonthlySaleModel.fromJson(e as Map<String, dynamic>))

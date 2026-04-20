@@ -25,6 +25,7 @@ class HistoryDetailModel extends HistoryDetailEntity {
     required super.oyRaqam,
     required super.yil,
     required super.jamiSumma,
+    super.foyda,
     required super.sotuvlarSoni,
   });
 
@@ -35,6 +36,7 @@ class HistoryDetailModel extends HistoryDetailEntity {
       oyRaqam: json['oy_raqam'] ?? 0,
       yil: json['yil'] ?? 0,
       jamiSumma: json['jami_summa'] ?? 0,
+      foyda: json['foyda'] ?? 0,
       sotuvlarSoni: json['sotuvlar_soni'] ?? 0,
     );
   }

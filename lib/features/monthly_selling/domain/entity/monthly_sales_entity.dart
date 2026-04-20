@@ -14,6 +14,7 @@ class MonthlySalesDataEntity {
   final int yil;
   final int oy;
   final int jamiSumma;
+  final num foyda;
   final int sotuvlarSoni;
   final List<MonthlySaleEntity> sotuvlar;
 
@@ -21,6 +22,7 @@ class MonthlySalesDataEntity {
     required this.yil,
     required this.oy,
     required this.jamiSumma,
+    required this.foyda,
     required this.sotuvlarSoni,
     required this.sotuvlar,
   });
