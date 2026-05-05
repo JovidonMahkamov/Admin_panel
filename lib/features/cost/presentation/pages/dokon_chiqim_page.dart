@@ -8,6 +8,10 @@ import 'package:admin_panel/features/cost/presentation/widgets/payment_tabs_wg.d
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:admin_panel/core/networks/api_urls.dart';
+import 'package:admin_panel/core/networks/dio_client.dart';
+import 'package:admin_panel/core/di/services_locator.dart';
+import 'dokon_tarix_page.dart';
 
 class DokonChiqimPage extends StatefulWidget {
   const DokonChiqimPage({super.key});
@@ -38,6 +42,46 @@ class _DokonChiqimPageState extends State<DokonChiqimPage> {
       _ => 'naqd',
     };
     return items.where((e) => e.tolovTuri == type).toList();
+  }
+
+  Future<void> _yakunlash() async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text("Oylik yakunlash"),
+        content: const Text("Joriy oy do'kon chiqimlarini yakunlashni tasdiqlaysizmi?"),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text("Yo'q")),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
+            child: const Text("Ha, yakunlash", style: TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+    if (ok != true || !mounted) return;
+    try {
+      final dio = sl<DioClient>();
+      final now = DateTime.now();
+      final oyStr = now.year.toString() + '-' + now.month.toString().padLeft(2, '0');
+      await dio.post(ApiUrls.postDokonOylik, data: {'oy': oyStr});
+      if (!mounted) return;
+      _load();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Oylik yakunlandi ✅"), backgroundColor: Colors.green),
+      );
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Xatolik yuz berdi"), backgroundColor: Colors.red),
+        );
+      }
+    }
+  }
+
+  void _openTarix() {
+    Navigator.push(context, MaterialPageRoute(builder: (_) => const DokonTarixPage()));
   }
 
   Future<void> _onAdd() async {
@@ -181,8 +225,30 @@ class _DokonChiqimPageState extends State<DokonChiqimPage> {
                                   child: Text("Do'kon chiqim",
                                       style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
                                 ),
+                                TextButton.icon(
+                                  onPressed: _openTarix,
+                                  icon: const Icon(Icons.history, size: 18),
+                                  label: const Text("Tarix"),
+                                  style: TextButton.styleFrom(foregroundColor: const Color(0xFF1877F2)),
+                                ),
+                                const SizedBox(width: 8),
                                 SizedBox(
-                                  width: 180,
+                                  height: 40,
+                                  child: ElevatedButton.icon(
+                                    onPressed: _yakunlash,
+                                    icon: const Icon(Icons.check_circle_outline, size: 18),
+                                    label: const Text("Oylik yakunlash"),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.orange,
+                                      foregroundColor: Colors.white,
+                                      elevation: 0,
+                                      shape: const StadiumBorder(),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                SizedBox(
+                                  width: 160,
                                   height: 40,
                                   child: ElevatedButton(
                                     onPressed: _onAdd,

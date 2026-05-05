@@ -45,6 +45,11 @@ abstract class ApiUrls {
 
   ///Kassa Harajat
   static const String getKassa = '/xarajat/kassa';
+  static const String kassaQarzOlish = '/xarajat/kassa';   // + /{id}/qarz-olish
+  static const String kassaTolovTarix = '/xarajat/kassa';  // + /{id}/tolov-tarix
+  static const String getDokonOylik = '/xarajat/dokon/oylik';
+  static const String postDokonOylik = '/xarajat/dokon/oylik';
+  static const String getDokonTarix = '/xarajat/dokon/tarix';
   static const String postKassa = '/xarajat/kassa';
   static const String deleteKassa = '/xarajat/kassa/';
   static const String updateKassa = '/xarajat/kassa/';

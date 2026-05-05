@@ -163,6 +163,148 @@ class _KassaChiqimPageState extends State<KassaChiqimPage> {
     ));
   }
 
+  Future<void> onQarzOlish(KassaExpenseRowData row) async {
+    final ctrl = TextEditingController();
+    String selectedPayType = 'naqd';
+    final result = await showDialog<double>(
+      context: context,
+      builder: (_) => StatefulBuilder(
+        builder: (ctx, setState) => AlertDialog(
+          title: Text("Qarz qo'shish: " + row.doKon),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text("Hozirgi qarz: " + row.qarzQoldiq.toStringAsFixed(2) + "\$",
+                  style: const TextStyle(fontWeight: FontWeight.w700, color: Colors.red)),
+              const SizedBox(height: 12),
+              DropdownButtonFormField<String>(
+                value: selectedPayType,
+                decoration: const InputDecoration(labelText: "To'lov turi", border: OutlineInputBorder()),
+                items: const [
+                  DropdownMenuItem(value: 'naqd', child: Text('Naqd')),
+                  DropdownMenuItem(value: 'terminal', child: Text('Terminal')),
+                  DropdownMenuItem(value: 'click', child: Text('Click')),
+                ],
+                onChanged: (v) => setState(() => selectedPayType = v!),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: ctrl,
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                decoration: const InputDecoration(
+                  labelText: "Qarz summasi (\$)",
+                  border: OutlineInputBorder(),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text("Bekor")),
+            ElevatedButton(
+              onPressed: () {
+                final v = double.tryParse(ctrl.text.trim()) ?? 0;
+                if (v > 0) Navigator.pop(ctx, v);
+              },
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+              child: const Text("Saqlash", style: TextStyle(color: Colors.white)),
+            ),
+          ],
+        ),
+      ),
+    );
+    if (result == null || !mounted) return;
+    try {
+      final dio = sl<DioClient>();
+      await dio.post(
+        '/xarajat/kassa/' + row.id + '/qarz-olish',
+        data: {'summa': result, 'tolov_turi': selectedPayType},
+      );
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Qarz qo'shildi: " + result.toStringAsFixed(2) + "\$"), backgroundColor: Colors.orange),
+      );
+      _loadAll();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Xatolik yuz berdi"), backgroundColor: Colors.red),
+        );
+      }
+    }
+  }
+
+  Future<void> onQarzTarix(KassaExpenseRowData row) async {
+    try {
+      final dio = sl<DioClient>();
+      final tolovResp = await dio.get('/xarajat/kassa/' + row.id + '/tolov-tarix');
+      final olishResp = await dio.get('/xarajat/kassa/' + row.id + '/qarz-olish');
+      if (!mounted) return;
+      final tolovlar = (tolovResp.data['data']['tolovlar'] as List<dynamic>? ?? []);
+      final olishlar = (olishResp.data['data']['qarz_olishlar'] as List<dynamic>? ?? []);
+
+      showDialog(
+        context: context,
+        builder: (_) => AlertDialog(
+          title: Text(row.doKon + " - Tarix"),
+          content: SizedBox(
+            width: 500,
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (olishlar.isNotEmpty) ...[
+                    const Text("Qarz olishlar:", style: TextStyle(fontWeight: FontWeight.w800, color: Colors.red)),
+                    const SizedBox(height: 6),
+                    ...olishlar.map((o) => Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 3),
+                      child: Row(children: [
+                        Text(o['sana']?.toString() ?? '', style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                        const Spacer(),
+                        Text(o['tolov_turi'] ?? '', style: const TextStyle(fontSize: 12)),
+                        const SizedBox(width: 12),
+                        Text("+" + (o['summa'] ?? 0).toString() + "\$",
+                            style: const TextStyle(fontWeight: FontWeight.w700, color: Colors.red)),
+                      ]),
+                    )),
+                    const Divider(),
+                  ],
+                  if (tolovlar.isNotEmpty) ...[
+                    const Text("To'lovlar:", style: TextStyle(fontWeight: FontWeight.w800, color: Colors.green)),
+                    const SizedBox(height: 6),
+                    ...tolovlar.map((t) => Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 3),
+                      child: Row(children: [
+                        Text(t['sana']?.toString() ?? '', style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                        const Spacer(),
+                        Text(t['tolov_turi'] ?? '', style: const TextStyle(fontSize: 12)),
+                        const SizedBox(width: 12),
+                        Text("-" + (t['summa'] ?? 0).toString() + "\$",
+                            style: const TextStyle(fontWeight: FontWeight.w700, color: Colors.green)),
+                      ]),
+                    )),
+                  ],
+                  if (olishlar.isEmpty && tolovlar.isEmpty)
+                    const Text("Tarix mavjud emas"),
+                ],
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(context), child: const Text("Yopish")),
+          ],
+        ),
+      );
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Tarixni yuklashda xatolik"), backgroundColor: Colors.red),
+        );
+      }
+    }
+  }
+
   Future<void> onTolash(KassaExpenseRowData row) async {
     final ctrl = TextEditingController();
     String selectedPayType = 'naqd';
@@ -400,6 +542,8 @@ class _KassaChiqimPageState extends State<KassaChiqimPage> {
                             onEdit: onEdit,
                             onDelete: onDelete,
                             onTolash: onTolash,
+                            onQarzOlish: onQarzOlish,
+                            onTarix: onQarzTarix,
                           ),
                       ],
                     ),
@@ -419,12 +563,16 @@ class _KassaTableWg extends StatelessWidget {
   final ValueChanged<KassaExpenseRowData> onEdit;
   final ValueChanged<KassaExpenseRowData> onDelete;
   final ValueChanged<KassaExpenseRowData> onTolash;
+  final ValueChanged<KassaExpenseRowData> onQarzOlish;
+  final ValueChanged<KassaExpenseRowData> onTarix;
 
   const _KassaTableWg({
     required this.rows,
     required this.onEdit,
     required this.onDelete,
     required this.onTolash,
+    required this.onQarzOlish,
+    required this.onTarix,
   });
 
   @override
@@ -469,6 +617,8 @@ class _KassaTableWg extends StatelessWidget {
                 onEdit: () => onEdit(r),
                 onDelete: () => onDelete(r),
                 onTolash: () => onTolash(r),
+                onQarzOlish: () => onQarzOlish(r),
+                onTarix: () => onTarix(r),
               )),
           ],
         ),
@@ -482,8 +632,10 @@ class _KassaRow extends StatelessWidget {
   final VoidCallback onEdit;
   final VoidCallback onDelete;
   final VoidCallback onTolash;
+  final VoidCallback onQarzOlish;
+  final VoidCallback onTarix;
 
-  const _KassaRow({required this.row, required this.onEdit, required this.onDelete, required this.onTolash});
+  const _KassaRow({required this.row, required this.onEdit, required this.onDelete, required this.onTolash, required this.onQarzOlish, required this.onTarix});
 
   @override
   Widget build(BuildContext context) {
@@ -511,10 +663,16 @@ class _KassaRow extends StatelessWidget {
               ),
               SizedBox(width: 150, child: Text(row.izoh, style: const TextStyle(fontSize: 12), overflow: TextOverflow.ellipsis)),
               SizedBox(
-                width: 130,
+                width: 150,
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
+                    _IconInk(icon: Icons.history_rounded, color: Colors.purple, onTap: onTarix),
+                    const SizedBox(width: 4),
+                    if (!row.toliqTolangan)
+                      _IconInk(icon: Icons.add_circle_outline, color: Colors.red, onTap: onQarzOlish),
+                    if (!row.toliqTolangan)
+                      const SizedBox(width: 4),
                     if (!row.toliqTolangan)
                       _IconInk(icon: Icons.payment_rounded, color: Colors.green, onTap: onTolash),
                     const SizedBox(width: 4),
