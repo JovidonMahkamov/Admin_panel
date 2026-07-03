@@ -12,12 +12,12 @@ class SummaryModel extends SummaryEntity {
 
   factory SummaryModel.fromJson(Map<String, dynamic> json) {
     return SummaryModel(
-      jamiNarx:      (json['jami_narx'] as num? ?? 0).toDouble(),
+      jamiNarx: (json['jami_narx'] as num? ?? 0).toDouble(),
       adminJamiNarx: (json['admin_jami_narx'] as num? ?? 0).toDouble(),
-      jamiMetr:      (json['jami_metr'] as num? ?? 0).toDouble(),
-      jamiMiqdor:    json['jami_miqdor'] ?? 0,
-      jamiPochka:    json['jami_pochka'] ?? 0,
-      tovarlarSoni:  json['tovarlar_soni'] ?? 0,
+      jamiMetr: (json['jami_metr'] as num? ?? 0).toDouble(),
+      jamiMiqdor: (json['jami_miqdor'] as num? ?? 0).toInt(),
+      jamiPochka: (json['jami_pochka'] as num? ?? 0).toInt(),
+      tovarlarSoni: (json['tovarlar_soni'] as num? ?? 0).toInt(),
     );
   }
 }
