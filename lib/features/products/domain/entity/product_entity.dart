@@ -9,11 +9,12 @@ class ProductEntity {
   final String? miqdor;
   final String? kelganNarx;
   final String? jamiNarx;
+  final String? sotishNarxMetr; // yangi: sotish narxi (metr uchun)
   final String? rasm;
   final String? qrKod;
   final int? sotildi;
-  final int? sotilganMiqdor; // yangi
-  final double? sotilganMetr; // yangi
+  final int? sotilganMiqdor;
+  final double? sotilganMetr;
   final int? sotilganPochka;
   final DateTime yaratilgan;
 
@@ -29,6 +30,7 @@ class ProductEntity {
     this.miqdor,
     this.kelganNarx,
     this.jamiNarx,
+    this.sotishNarxMetr,
     this.rasm,
     this.qrKod,
     required this.yaratilgan,

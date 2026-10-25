@@ -28,7 +28,7 @@ class WorkerRepositoryImpl implements WorkerRepositories {
 
   @override
   Future<UpdateWorkerResponseEntity> updateWorker(UpdateWorkerRequestEntity entity) {
-    return remote.updateWorker(id: entity.id, fish: entity.fish, parol: entity.parol, login: entity.login, telefon: entity.telefon);
+    return remote.updateWorker(id: entity.id, fish: entity.fish, parol: entity.parol, login: entity.login, telefon: entity.telefon, foiz: entity.foiz);
   }
 
 }

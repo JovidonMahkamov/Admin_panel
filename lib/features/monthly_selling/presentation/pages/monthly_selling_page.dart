@@ -42,6 +42,7 @@ class _MonthlySellingPageState extends State<MonthlySellingPage> {
   }
 
   List<ClosedDaySale> _mapMonthlyData(MonthlySalesEntity entity) {
+    final kunlikKirimMap = entity.data.kunlikKirimMap;
     final Map<String, List<MonthlySaleEntity>> groupedByDay = {};
 
     for (final sale in entity.data.sotuvlar) {
@@ -105,10 +106,17 @@ class _MonthlySellingPageState extends State<MonthlySellingPage> {
 
       workers.sort((a, b) => b.totalUsd.compareTo(a.totalUsd));
 
+      // Kunlik kirim - kunlikKirimMap dan olamiz
+      final dayKey = dayDate.year.toString() + '-' +
+          dayDate.month.toString().padLeft(2, '0') + '-' +
+          dayDate.day.toString().padLeft(2, '0');
+      final kirimDay = kunlikKirimMap[dayKey] ?? 0.0;
+
       result.add(
         ClosedDaySale(
           date: dayDate,
           totalUsd: totalDayAmount.toDouble(),
+          kirimUsd: kirimDay,
           workers: workers,
         ),
       );
@@ -217,7 +225,13 @@ class _MonthlySellingPageState extends State<MonthlySellingPage> {
           if (state is GetMonthlySellingSuccess) {
             final monthlyEntity = state.monthlySalesEntity;
             final days = _mapMonthlyData(monthlyEntity);
-            final totalAmount = _formatMoney(monthlyEntity.data.jamiSumma);
+            final jamiSavdo = _formatMoney(monthlyEntity.data.jamiSumma);
+            final umumiyJami = monthlyEntity.data.umumiyJami > 0
+                ? monthlyEntity.data.umumiyJami
+                : monthlyEntity.data.jamiSumma.toDouble();
+            final totalAmount = umumiyJami > 0
+                ? umumiyJami.toStringAsFixed(2) + r'$'
+                : jamiSavdo;
             final foyda = monthlyEntity.data.foyda;
             final monthLabel =
                 "${monthlyEntity.data.oy.toString().padLeft(2, '0')}.${monthlyEntity.data.yil}";
@@ -645,11 +659,13 @@ class _MonthlySellingPageState extends State<MonthlySellingPage> {
 class ClosedDaySale {
   final DateTime date;
   final double totalUsd;
+  final double kirimUsd;
   final List<WorkerDailySales> workers;
 
   const ClosedDaySale({
     required this.date,
     required this.totalUsd,
+    this.kirimUsd = 0,
     required this.workers,
   });
 }
@@ -741,14 +757,10 @@ class _MonthlyDailyTable extends StatelessWidget {
           child: Row(
             children: [
               SizedBox(width: 70, child: Text("S/N", style: headerStyle)),
-              Expanded(flex: 5, child: Text("Sana", style: headerStyle)),
-              Expanded(
-                flex: 3,
-                child: Align(
-                  alignment: Alignment.centerRight,
-                  child: Text("Kunlik savdo summasi", style: headerStyle),
-                ),
-              ),
+              Expanded(flex: 4, child: Text("Sana", style: headerStyle)),
+              Expanded(flex: 3, child: Align(alignment: Alignment.centerRight, child: Text("Savdo", style: headerStyle))),
+              Expanded(flex: 3, child: Align(alignment: Alignment.centerRight, child: Text("Kirim", style: headerStyle.copyWith(color: Colors.green.shade700)))),
+              Expanded(flex: 3, child: Align(alignment: Alignment.centerRight, child: Text("Jami", style: headerStyle.copyWith(color: Colors.blue.shade700)))),
             ],
           ),
         ),
@@ -766,14 +778,31 @@ class _MonthlyDailyTable extends StatelessWidget {
                   child: Row(
                     children: [
                       SizedBox(width: 70, child: Text(sn)),
-                      Expanded(flex: 5, child: Text(formatDate(d.date))),
+                      Expanded(flex: 4, child: Text(formatDate(d.date))),
+                      Expanded(
+                        flex: 3,
+                        child: Align(
+                          alignment: Alignment.centerRight,
+                          child: Text(formatMoney(d.totalUsd), style: const TextStyle(fontWeight: FontWeight.w600)),
+                        ),
+                      ),
                       Expanded(
                         flex: 3,
                         child: Align(
                           alignment: Alignment.centerRight,
                           child: Text(
-                            formatMoney(d.totalUsd),
-                            style: const TextStyle(fontWeight: FontWeight.w600),
+                            d.kirimUsd > 0 ? '+' + formatMoney(d.kirimUsd) : '-',
+                            style: TextStyle(fontWeight: FontWeight.w600, color: Colors.green.shade600),
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        flex: 3,
+                        child: Align(
+                          alignment: Alignment.centerRight,
+                          child: Text(
+                            formatMoney(d.totalUsd + d.kirimUsd),
+                            style: TextStyle(fontWeight: FontWeight.w700, color: Colors.blue.shade700),
                           ),
                         ),
                       ),

@@ -39,6 +39,8 @@ class ProductRepositoryImpl implements ProductRepositories {
     required String? miqdor,
     required String? kelganNarx,
     required String? jamiNarx,
+    required String? sotishNarxMetr,
+    required String? jamiSotishNarx,
     File? rasm,
   }) {
     return remote.updateProduct(
@@ -52,6 +54,8 @@ class ProductRepositoryImpl implements ProductRepositories {
       miqdor: miqdor,
       kelganNarx: kelganNarx,
       jamiNarx: jamiNarx,
+      sotishNarxMetr: sotishNarxMetr,
+      jamiSotishNarx: jamiSotishNarx,
       rasm: rasm,
     );
   }

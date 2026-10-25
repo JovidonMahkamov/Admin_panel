@@ -134,6 +134,14 @@ class _HarajatChiqimPageState extends State<HarajatChiqimPage> {
     Navigator.push(context, MaterialPageRoute(builder: (_) => const HarajatTarixPage()));
   }
 
+  Future<bool> _savdoYoqMi() async {
+    try {
+      final dio = sl<DioClient>();
+      final resp = await dio.get(ApiUrls.getBugunBormi);
+      return !(resp.data['data']['savdo_bor'] ?? false);
+    } catch (_) { return false; }
+  }
+
   Future<void> onAdd(List<WorkerOption> workers) async {
     if (workers.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -148,6 +156,16 @@ class _HarajatChiqimPageState extends State<HarajatChiqimPage> {
     );
     if (result == null || !mounted) return;
 
+    if (await _savdoYoqMi()) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Bugun savdo bo'lmagan! Chiqim qo'shib bo'lmaydi."),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
     context.read<PostCostBloc>().add(PostHarajatE(
       request: CreateExpenseRequestModel(
         ishchiIdField: result.workerId,

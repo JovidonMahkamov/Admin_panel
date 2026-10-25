@@ -34,6 +34,7 @@ class UpdateWorkerE extends WorkerEvent {
   final String login;
   final String parol;
   final String telefon;
+  final double foiz;
 
   const UpdateWorkerE({
     required this.id,
@@ -41,5 +42,6 @@ class UpdateWorkerE extends WorkerEvent {
     required this.login,
     required this.parol,
     required this.telefon,
+    this.foiz = 0,
   });
 }

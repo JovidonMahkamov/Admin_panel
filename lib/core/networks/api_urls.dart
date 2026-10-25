@@ -2,6 +2,7 @@ abstract class ApiUrls {
   static const String baseUrl = 'https://olampardalar.uz/api';
 
   ///Workers
+  static const String getIshchiFoizHisob = '/ishchilar/foiz-hisob';
   static const String getAllWorker = '/ishchilar/';
   static const String createWorker = '/ishchilar/';
   static const String deleteWorker = '/ishchilar/';
@@ -16,8 +17,9 @@ abstract class ApiUrls {
 
   ///Dashboard
   static const String getDashboard = '/sotuv/bugun';
+  static const String getBugunBormi = '/sotuv/bugun-bormi';
   static const String updateTransfer = '/sotuv/bugun/kochirish';
-  static const String finishSales = '/sotuv/yakunlash';
+  static const String finishSales = '/sotuv/kun-yakunlash';
   static const String workerDeail = '/sotuv/oylik/kun/ishchi';
 
   ///Tovar

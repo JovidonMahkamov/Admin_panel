@@ -33,6 +33,8 @@ class UpdateProductE extends ProductsEvent {
   final String? miqdor;
   final String? kelganNarx;
   final String? jamiNarx;
+  final String? sotishNarxMetr;
+  final String? jamiSotishNarx;
   final File? rasm;
 
   const UpdateProductE({
@@ -46,6 +48,8 @@ class UpdateProductE extends ProductsEvent {
     this.miqdor,
     this.kelganNarx,
     this.jamiNarx,
+    this.sotishNarxMetr,
+    this.jamiSotishNarx,
     this.rasm,
   });
 }

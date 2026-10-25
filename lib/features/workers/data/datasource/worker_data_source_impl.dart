@@ -83,6 +83,7 @@ class WorkerDataSourceImpl implements WorkerDataSource {
     required String parol,
     required String login,
     required String telefon,
+    double foiz = 0,
   }) async {
     try {
       final response = await dioClient.patch(
@@ -92,6 +93,7 @@ class WorkerDataSourceImpl implements WorkerDataSource {
           "parol": parol,
           "telefon": telefon,
           "login": login,
+          "foiz": foiz,
         },
       );
       if (response.statusCode == 200 || response.statusCode == 201) {

@@ -18,8 +18,24 @@ class UpdateProductUseCase {
     required String? miqdor,
     required String? kelganNarx,
     required String? jamiNarx,
+    required String? sotishNarxMetr,
+    required String? jamiSotishNarx,
     File? rasm,
-  })async {
-    return await repository.updateProduct(id: id, nomi: nomi, narxDona: narxDona, narxMetr: narxMetr, narxPochka: narxPochka, pochka: pochka, metr: metr, miqdor: miqdor, kelganNarx: kelganNarx, jamiNarx: jamiNarx, rasm: rasm);
+  }) async {
+    return await repository.updateProduct(
+      id: id,
+      nomi: nomi,
+      narxDona: narxDona,
+      narxMetr: narxMetr,
+      narxPochka: narxPochka,
+      pochka: pochka,
+      metr: metr,
+      miqdor: miqdor,
+      kelganNarx: kelganNarx,
+      jamiNarx: jamiNarx,
+      sotishNarxMetr: sotishNarxMetr,
+      jamiSotishNarx: jamiSotishNarx,
+      rasm: rasm,
+    );
   }
 }

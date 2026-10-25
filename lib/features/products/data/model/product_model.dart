@@ -12,6 +12,7 @@ class ProductModel extends ProductEntity {
     super.miqdor,
     super.kelganNarx,
     super.jamiNarx,
+    super.sotishNarxMetr,
     super.rasm,
     super.qrKod,
     super.sotildi,
@@ -23,14 +24,9 @@ class ProductModel extends ProductEntity {
 
   factory ProductModel.fromJson(Map<String, dynamic> json) {
     return ProductModel(
-      sotilganMiqdor:
-      (json['sotilgan_miqdor'] as num? ?? 0).toInt(),
-
-      sotilganPochka:
-      (json['sotilgan_pochka'] as num? ?? 0).toInt(),
-
-      sotilganMetr:
-      (json['sotilgan_metr'] as num? ?? 0).toDouble(),
+      sotilganMiqdor: (json['sotilgan_miqdor'] as num? ?? 0).toInt(),
+      sotilganPochka: (json['sotilgan_pochka'] as num? ?? 0).toInt(),
+      sotilganMetr: (json['sotilgan_metr'] as num? ?? 0).toDouble(),
       id: json['id'] ?? 0,
       nomi: json['nomi'] ?? '',
       narxDona: json['narx_dona']?.toString(),
@@ -41,6 +37,7 @@ class ProductModel extends ProductEntity {
       miqdor: json['miqdor']?.toString(),
       kelganNarx: json['kelgan_narx']?.toString(),
       jamiNarx: json['jami_narx']?.toString(),
+      sotishNarxMetr: json['sotish_narx_metr']?.toString(),
       rasm: json['rasm']?.toString(),
       qrKod: json['qr_kod']?.toString(),
       yaratilgan: DateTime.tryParse(json['yaratilgan'] ?? '') ?? DateTime.now(),
@@ -59,6 +56,7 @@ class ProductModel extends ProductEntity {
       'miqdor': miqdor,
       'kelgan_narx': kelganNarx,
       'jami_narx': jamiNarx,
+      'sotish_narx_metr': sotishNarxMetr,
       'rasm': rasm,
       'qr_kod': qrKod,
       'yaratilgan': yaratilgan.toIso8601String(),

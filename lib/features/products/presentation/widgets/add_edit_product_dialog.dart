@@ -16,7 +16,7 @@ import 'product_qr_dialog.dart';
 
 class AddEditProductDialog extends StatefulWidget {
   final String title;
-  final ProductRow? initial; // null = qo'shish, bor = tahrirlash
+  final ProductRow? initial;
 
   const AddEditProductDialog({super.key, required this.title, this.initial});
 
@@ -28,12 +28,13 @@ class _AddEditProductDialogState extends State<AddEditProductDialog> {
   final _formKey = GlobalKey<FormState>();
 
   late final TextEditingController _nameCtrl;
-  late final TextEditingController _metrCtrl;
-  late final TextEditingController _packetCtrl;
-  late final TextEditingController _pachkaCtrl;
-  late final TextEditingController _metriCtrl;
-  late final TextEditingController _kelganCtrl;
-  late final TextEditingController _jaminarxCtrl;
+  late final TextEditingController _metrCtrl;       // narx_metr (metr uchun sotib olingan narx $)
+  late final TextEditingController _packetCtrl;     // narx_pochka
+  late final TextEditingController _pachkaCtrl;     // pochka (dona soni)
+  late final TextEditingController _metriCtrl;      // metr (ombordagi metr)
+  late final TextEditingController _jaminarxCtrl;   // jami narx (avtohisob)
+  late final TextEditingController _sotishNarxCtrl; // sotish narxi metr ($)
+  late final TextEditingController _jamiSotishCtrl; // jami sotish narxi (avtohisob)
 
   String _imagePath = '';
 
@@ -44,13 +45,58 @@ class _AddEditProductDialogState extends State<AddEditProductDialog> {
     super.initState();
     final p = widget.initial;
 
-    _nameCtrl = TextEditingController(text: p?.productName ?? '');
-    _metrCtrl = TextEditingController(text: p?.metrPrice ?? '');
-    _packetCtrl = TextEditingController(text: p?.packetPrice ?? '');
-    _pachkaCtrl = TextEditingController(text: p?.pachka ?? '');
-    _metriCtrl = TextEditingController(text: p?.metri ?? '');
-    _kelganCtrl = TextEditingController(text: p?.kelganNarx ?? '');
-    _jaminarxCtrl = TextEditingController(text: p?.jamiNarx ?? '');
+    _nameCtrl       = TextEditingController(text: p?.productName ?? '');
+    _metrCtrl       = TextEditingController(text: p?.metrPrice ?? '');
+    _packetCtrl     = TextEditingController(text: p?.packetPrice ?? '');
+    _pachkaCtrl     = TextEditingController(text: p?.pachka ?? '');
+    _metriCtrl      = TextEditingController(text: p?.metri ?? '');
+    _jaminarxCtrl   = TextEditingController(text: p?.jamiNarx ?? '');
+    _sotishNarxCtrl = TextEditingController(text: p?.sotishNarxMetr ?? '');
+    _jamiSotishCtrl = TextEditingController(text: _initialJamiSotish(p));
+
+    _metrCtrl.addListener(_autoCalcJamiNarx);
+    _metriCtrl.addListener(_autoCalcJamiNarx);
+
+    _sotishNarxCtrl.addListener(_autoCalcJamiSotish);
+    _metriCtrl.addListener(_autoCalcJamiSotish);
+  }
+
+  String _initialJamiSotish(ProductRow? p) {
+    if (p == null) return '';
+    final sotishNarx = double.tryParse(p.sotishNarxMetr);
+    final metr       = double.tryParse(p.metri);
+    if (sotishNarx != null && metr != null && metr > 0) {
+      return (sotishNarx * metr).toStringAsFixed(2);
+    }
+    return '';
+  }
+
+  void _autoCalcJamiNarx() {
+    final metrNarx = double.tryParse(_metrCtrl.text.trim());
+    final metr     = double.tryParse(_metriCtrl.text.trim());
+    if (metrNarx != null && metr != null && metr > 0) {
+      final calc = (metrNarx * metr).toStringAsFixed(2);
+      if (_jaminarxCtrl.text != calc) {
+        _jaminarxCtrl.text = calc;
+        _jaminarxCtrl.selection = TextSelection.fromPosition(
+          TextPosition(offset: _jaminarxCtrl.text.length),
+        );
+      }
+    }
+  }
+
+  void _autoCalcJamiSotish() {
+    final sotishNarx = double.tryParse(_sotishNarxCtrl.text.trim());
+    final metr       = double.tryParse(_metriCtrl.text.trim());
+    if (sotishNarx != null && metr != null && metr > 0) {
+      final calc = (sotishNarx * metr).toStringAsFixed(2);
+      if (_jamiSotishCtrl.text != calc) {
+        _jamiSotishCtrl.text = calc;
+        _jamiSotishCtrl.selection = TextSelection.fromPosition(
+          TextPosition(offset: _jamiSotishCtrl.text.length),
+        );
+      }
+    }
   }
 
   @override
@@ -60,8 +106,9 @@ class _AddEditProductDialogState extends State<AddEditProductDialog> {
     _packetCtrl.dispose();
     _pachkaCtrl.dispose();
     _metriCtrl.dispose();
-    _kelganCtrl.dispose();
     _jaminarxCtrl.dispose();
+    _sotishNarxCtrl.dispose();
+    _jamiSotishCtrl.dispose();
     super.dispose();
   }
 
@@ -70,7 +117,6 @@ class _AddEditProductDialogState extends State<AddEditProductDialog> {
       type: FileType.image,
       allowMultiple: false,
     );
-
     if (result == null || result.files.isEmpty) return;
     final path = result.files.single.path;
     if (path == null) return;
@@ -81,7 +127,6 @@ class _AddEditProductDialogState extends State<AddEditProductDialog> {
     if (!_formKey.currentState!.validate()) return;
 
     if (_isEdit) {
-      // UPDATE
       context.read<UpdateProductBloc>().add(
         UpdateProductE(
           id: widget.initial!.id,
@@ -90,25 +135,30 @@ class _AddEditProductDialogState extends State<AddEditProductDialog> {
           narxPochka: _emptyToNull(_packetCtrl.text),
           pochka: _emptyToNull(_pachkaCtrl.text),
           metr: _emptyToNull(_metriCtrl.text),
-          kelganNarx: _emptyToNull(_kelganCtrl.text),
+          kelganNarx: _emptyToNull(_metrCtrl.text), // narx_metr = kelgan narx
           jamiNarx: _emptyToNull(_jaminarxCtrl.text),
+          sotishNarxMetr: _emptyToNull(_sotishNarxCtrl.text),
+          jamiSotishNarx: _emptyToNull(_jamiSotishCtrl.text),
           rasm: _imagePath.trim().isEmpty ? null : File(_imagePath),
         ),
       );
     } else {
-      // CREATE
-      final params = CreateProductParams(
-        nomi: _nameCtrl.text.trim(),
-        narxMetr: _emptyToNull(_metrCtrl.text),
-        narxPochka: _emptyToNull(_packetCtrl.text),
-        pochka: _emptyToNull(_pachkaCtrl.text),
-        metr: _emptyToNull(_metriCtrl.text),
-        kelganNarx: _emptyToNull(_kelganCtrl.text),
-        jamiNarx: _emptyToNull(_jaminarxCtrl.text),
-        rasm: _imagePath.trim().isEmpty ? null : File(_imagePath),
+      context.read<CreateProductBloc>().add(
+        CreateProductE(
+          create: CreateProductParams(
+            nomi: _nameCtrl.text.trim(),
+            narxMetr: _emptyToNull(_metrCtrl.text),
+            narxPochka: _emptyToNull(_packetCtrl.text),
+            pochka: _emptyToNull(_pachkaCtrl.text),
+            metr: _emptyToNull(_metriCtrl.text),
+            kelganNarx: _emptyToNull(_metrCtrl.text), // narx_metr = kelgan narx
+            jamiNarx: _emptyToNull(_jaminarxCtrl.text),
+            sotishNarxMetr: _emptyToNull(_sotishNarxCtrl.text),
+            jamiSotishNarx: _emptyToNull(_jamiSotishCtrl.text),
+            rasm: _imagePath.trim().isEmpty ? null : File(_imagePath),
+          ),
+        ),
       );
-
-      context.read<CreateProductBloc>().add(CreateProductE(create: params));
     }
   }
 
@@ -122,15 +172,13 @@ class _AddEditProductDialogState extends State<AddEditProductDialog> {
   Widget build(BuildContext context) {
     return MultiBlocListener(
       listeners: [
-        // CREATE listener
         BlocListener<CreateProductBloc, CreateProductState>(
           listener: (context, state) async {
             if (state is CreateProductError) {
-              ScaffoldMessenger.of(
-                context,
-              ).showSnackBar(SnackBar(content: Text(state.message)));
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(state.message)),
+              );
             }
-
             if (state is CreateProductSuccess) {
               Navigator.pop(context);
               await showDialog(
@@ -143,16 +191,13 @@ class _AddEditProductDialogState extends State<AddEditProductDialog> {
             }
           },
         ),
-
-        // UPDATE listener
         BlocListener<UpdateProductBloc, UpdateProductState>(
           listener: (context, state) {
             if (state is UpdateProductError) {
-              ScaffoldMessenger.of(
-                context,
-              ).showSnackBar(SnackBar(content: Text(state.message)));
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text(state.message)),
+              );
             }
-
             if (state is UpdateProductSuccess) {
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
@@ -185,10 +230,7 @@ class _AddEditProductDialogState extends State<AddEditProductDialog> {
                       Expanded(
                         child: Text(
                           widget.title,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w700,
-                          ),
+                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
                         ),
                       ),
                       IconButton(
@@ -211,13 +253,7 @@ class _AddEditProductDialogState extends State<AddEditProductDialog> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              "Rasm",
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.grey.shade700,
-                              ),
-                            ),
+                            Text("Rasm", style: TextStyle(fontSize: 12, color: Colors.grey.shade700)),
                             const SizedBox(height: 8),
                             Row(
                               children: [
@@ -230,10 +266,7 @@ class _AddEditProductDialogState extends State<AddEditProductDialog> {
                                 if (_imagePath.trim().isNotEmpty)
                                   Text(
                                     "Tanlandi",
-                                    style: TextStyle(
-                                      color: Colors.green.shade700,
-                                      fontWeight: FontWeight.w600,
-                                    ),
+                                    style: TextStyle(color: Colors.green.shade700, fontWeight: FontWeight.w600),
                                   ),
                               ],
                             ),
@@ -245,24 +278,23 @@ class _AddEditProductDialogState extends State<AddEditProductDialog> {
 
                   const SizedBox(height: 18),
 
-                  // Fieldlar
+                  // Fieldlar — 2 ustun
                   LayoutBuilder(
                     builder: (context, c) {
                       final wide = c.maxWidth >= 860;
 
-                      Widget row2(Widget a, Widget b) {
-                        return Row(
-                          children: [
-                            Expanded(child: a),
-                            const SizedBox(width: 18),
-                            Expanded(child: b),
-                          ],
-                        );
-                      }
+                      Widget row2(Widget a, Widget b) => Row(
+                        children: [
+                          Expanded(child: a),
+                          const SizedBox(width: 18),
+                          Expanded(child: b),
+                        ],
+                      );
 
                       if (wide) {
                         return Column(
                           children: [
+                            // 1-qator: Tovar nomi | Kelgan narx (metr uchun $)
                             row2(
                               _LabeledField(
                                 label: "Tovar nomi",
@@ -271,12 +303,13 @@ class _AddEditProductDialogState extends State<AddEditProductDialog> {
                                 validator: _required,
                               ),
                               _LabeledField(
-                                label: "Narx metr",
-                                hint: "",
+                                label: "Kelgan narx (metr \$)",
+                                hint: "masalan: 5.0",
                                 controller: _metrCtrl,
                               ),
                             ),
                             const SizedBox(height: 14),
+                            // 2-qator: Narx pochka | Metr (ombordagi miqdor)
                             row2(
                               _LabeledField(
                                 label: "Narx pochka",
@@ -284,13 +317,13 @@ class _AddEditProductDialogState extends State<AddEditProductDialog> {
                                 controller: _packetCtrl,
                               ),
                               _LabeledField(
-                                label: "Sotib olingan narx",
-                                hint: "",
-                                controller: _kelganCtrl,
+                                label: "Metr (ombordagi miqdor)",
+                                hint: "masalan: 30.0",
+                                controller: _metriCtrl,
                               ),
-
                             ),
                             const SizedBox(height: 14),
+                            // 3-qator: Pachka | Jami narx (avtohisob)
                             row2(
                               _LabeledField(
                                 label: "Pochka",
@@ -298,117 +331,95 @@ class _AddEditProductDialogState extends State<AddEditProductDialog> {
                                 controller: _pachkaCtrl,
                               ),
                               _LabeledField(
-                                label: "Metr",
-                                hint: "",
-                                controller: _metriCtrl,
+                                label: "Jami narx (avtohisob ✦)",
+                                hint: "kelgan narx × metr",
+                                controller: _jaminarxCtrl,
+                                readOnly: true,
                               ),
                             ),
                             const SizedBox(height: 14),
+                            // 4-qator: Sotish narxi metr | Jami sotish narxi (avtohisob)
                             row2(
                               _LabeledField(
-                                label: "Jami narx",
-                                hint: "",
-                                controller: _jaminarxCtrl,
+                                label: "Sotish narxi metr (\$)",
+                                hint: "masalan: 6.0",
+                                controller: _sotishNarxCtrl,
                               ),
-                              const SizedBox.shrink(),
+                              _LabeledField(
+                                label: "Jami sotish narxi (avtohisob ✦)",
+                                hint: "sotish narxi × metr",
+                                controller: _jamiSotishCtrl,
+                                readOnly: true,
+                              ),
                             ),
                           ],
                         );
                       }
 
+                      // Tor ekran — bir ustun
                       return Column(
                         children: [
-                          _LabeledField(
-                            label: "Tovar nomi",
-                            hint: "",
-                            controller: _nameCtrl,
-                            validator: _required,
-                          ),
+                          _LabeledField(label: "Tovar nomi", hint: "", controller: _nameCtrl, validator: _required),
                           const SizedBox(height: 14),
-                          _LabeledField(
-                            label: "Narx metr",
-                            hint: "",
-                            controller: _metrCtrl,
-                          ),
+                          _LabeledField(label: "Kelgan narx (metr \$)", hint: "masalan: 5.0", controller: _metrCtrl),
                           const SizedBox(height: 14),
-                          _LabeledField(
-                            label: "Narx pochka",
-                            hint: "",
-                            controller: _packetCtrl,
-                          ),
+                          _LabeledField(label: "Narx pochka", hint: "", controller: _packetCtrl),
                           const SizedBox(height: 14),
-                          _LabeledField(
-                            label: "Pochka",
-                            hint: "",
-                            controller: _pachkaCtrl,
-                          ),
+                          _LabeledField(label: "Pochka", hint: "", controller: _pachkaCtrl),
                           const SizedBox(height: 14),
-                          _LabeledField(
-                            label: "Metr",
-                            hint: "",
-                            controller: _metriCtrl,
-                          ),
+                          _LabeledField(label: "Metr (ombordagi miqdor)", hint: "masalan: 30.0", controller: _metriCtrl),
                           const SizedBox(height: 14),
-                          _LabeledField(
-                            label: "Sotib olingan narx",
-                            hint: "",
-                            controller: _kelganCtrl,
-                          ),
+                          _LabeledField(label: "Jami narx (avtohisob ✦)", hint: "kelgan narx × metr", controller: _jaminarxCtrl, readOnly: true),
                           const SizedBox(height: 14),
-                          _LabeledField(
-                            label: "Jami narx",
-                            hint: "",
-                            controller: _jaminarxCtrl,
-                          ),
+                          _LabeledField(label: "Sotish narxi metr (\$)", hint: "masalan: 6.0", controller: _sotishNarxCtrl),
+                          const SizedBox(height: 14),
+                          _LabeledField(label: "Jami sotish narxi (avtohisob ✦)", hint: "sotish narxi × metr", controller: _jamiSotishCtrl, readOnly: true),
                         ],
                       );
                     },
                   ),
 
                   const SizedBox(height: 22),
+
                   _isEdit
                       ? BlocBuilder<UpdateProductBloc, UpdateProductState>(
-                          builder: (context, state) {
-                            final isLoading = state is UpdateProductLoading;
-                            return Align(
-                              alignment: Alignment.centerRight,
-                              child: SizedBox(
-                                width: 320,
-                                height: 46,
-                                child: ElevatedWidget(
-                                  onPressed: isLoading ? null : _save,
-                                  size: 250,
-                                  text: isLoading
-                                      ? "Saqlanmoqda..."
-                                      : "Saqlash",
-                                  backgroundColor: Colors.blueAccent,
-                                  textColor: Colors.white,
-                                ),
-                              ),
-                            );
-                          },
-                        )
-                      : BlocBuilder<CreateProductBloc, CreateProductState>(
-                          builder: (context, state) {
-                            final isLoading = state is CreateProductLoading;
-                            return Align(
-                              alignment: Alignment.centerRight,
-                              child: SizedBox(
-                                width: 320,
-                                height: 46,
-                                child: ElevatedWidget(
-                                  onPressed: isLoading ? null : _save,
-                                  size: 250,
-                                  text: isLoading
-                                      ? "Saqlanmoqda..."
-                                      : "Saqlash",
-                                  backgroundColor: Colors.blueAccent,
-                                  textColor: Colors.white,
-                                ),
-                              ),
-                            );
-                          },
+                    builder: (context, state) {
+                      final isLoading = state is UpdateProductLoading;
+                      return Align(
+                        alignment: Alignment.centerRight,
+                        child: SizedBox(
+                          width: 320,
+                          height: 46,
+                          child: ElevatedWidget(
+                            onPressed: isLoading ? null : _save,
+                            size: 250,
+                            text: isLoading ? "Saqlanmoqda..." : "Saqlash",
+                            backgroundColor: Colors.blueAccent,
+                            textColor: Colors.white,
+                          ),
                         ),
+                      );
+                    },
+                  )
+                      : BlocBuilder<CreateProductBloc, CreateProductState>(
+                    builder: (context, state) {
+                      final isLoading = state is CreateProductLoading;
+                      return Align(
+                        alignment: Alignment.centerRight,
+                        child: SizedBox(
+                          width: 320,
+                          height: 46,
+                          child: ElevatedWidget(
+                            onPressed: isLoading ? null : _save,
+                            size: 250,
+                            text: isLoading ? "Saqlanmoqda..." : "Saqlash",
+                            backgroundColor: Colors.blueAccent,
+                            textColor: Colors.white,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
                 ],
               ),
             ),
@@ -428,34 +439,25 @@ class _DialogImagePreview extends StatelessWidget {
   final String localPath;
   final String networkPath;
 
-  const _DialogImagePreview({
-    required this.localPath,
-    required this.networkPath,
-  });
+  const _DialogImagePreview({required this.localPath, required this.networkPath});
 
   @override
   Widget build(BuildContext context) {
-    final hasLocal =
-        localPath.trim().isNotEmpty && File(localPath).existsSync();
+    final hasLocal = localPath.trim().isNotEmpty && File(localPath).existsSync();
     final hasNetwork = networkPath.trim().isNotEmpty;
 
     return ClipRRect(
       borderRadius: BorderRadius.circular(12),
       child: hasLocal
-          ? Image.file(
-              File(localPath),
-              width: 96,
-              height: 96,
-              fit: BoxFit.cover,
-            )
+          ? Image.file(File(localPath), width: 96, height: 96, fit: BoxFit.cover)
           : hasNetwork
           ? Image.network(
-              'https://olampardalar.uz/uploads/$networkPath',
-              width: 96,
-              height: 96,
-              fit: BoxFit.cover,
-              errorBuilder: (_, __, ___) => _placeholder(),
-            )
+        'https://olampardalar.uz/uploads/$networkPath',
+        width: 96,
+        height: 96,
+        fit: BoxFit.cover,
+        errorBuilder: (_, __, ___) => _placeholder(),
+      )
           : _placeholder(),
     );
   }
@@ -476,12 +478,14 @@ class _LabeledField extends StatelessWidget {
   final String hint;
   final TextEditingController controller;
   final String? Function(String?)? validator;
+  final bool readOnly;
 
   const _LabeledField({
     required this.label,
-    required this.hint,
+    this.hint = '',
     required this.controller,
     this.validator,
+    this.readOnly = false,
   });
 
   @override
@@ -489,21 +493,21 @@ class _LabeledField extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: TextStyle(fontSize: 12, color: Colors.grey.shade700),
-        ),
+        Text(label, style: TextStyle(fontSize: 12, color: Colors.grey.shade700)),
         const SizedBox(height: 8),
         TextFormField(
           controller: controller,
           validator: validator,
+          readOnly: readOnly,
+          style: readOnly
+              ? TextStyle(color: Colors.grey.shade600, fontWeight: FontWeight.w600)
+              : null,
           decoration: InputDecoration(
             hintText: hint,
             isDense: true,
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 14,
-              vertical: 14,
-            ),
+            filled: readOnly,
+            fillColor: readOnly ? Colors.grey.shade50 : null,
+            contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
             border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
           ),
         ),

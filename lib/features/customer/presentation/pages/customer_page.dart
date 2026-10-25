@@ -25,10 +25,22 @@ class CustomerPage extends StatefulWidget {
 }
 
 class _CustomerPageState extends State<CustomerPage> {
+  final TextEditingController _searchCtrl = TextEditingController();
+  String _searchQuery = '';
+
   @override
   void initState() {
     super.initState();
     context.read<GetAllCustomersBloc>().add(GetAllCustomersE());
+    _searchCtrl.addListener(() {
+      setState(() => _searchQuery = _searchCtrl.text.trim().toLowerCase());
+    });
+  }
+
+  @override
+  void dispose() {
+    _searchCtrl.dispose();
+    super.dispose();
   }
 
   void _openCustomerDetails(GetCustomerEntity customer) {
@@ -65,18 +77,15 @@ class _CustomerPageState extends State<CustomerPage> {
               fish: updatedCustomer.customerName,
               telefon: updatedCustomer.phone,
               manzil: updatedCustomer.address,
-              qarzdorlik:
-              (num.tryParse(cleanedDebt) ?? 0).toInt(),
+              qarzdorlik: (num.tryParse(cleanedDebt) ?? 0).toInt(),
             ),
           );
-
           Navigator.pop(context);
         },
       ),
     );
   }
 
-  // --- DELETE DIALOG ---
   void _openDeleteCustomerDialog(GetCustomerEntity customer) {
     showDialog(
       context: context,
@@ -87,10 +96,8 @@ class _CustomerPageState extends State<CustomerPage> {
           children: [
             Icon(Icons.warning_amber_rounded, color: Colors.red, size: 28),
             SizedBox(width: 10),
-            Text(
-              "O'chirishni tasdiqlang",
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700),
-            ),
+            Text("O'chirishni tasdiqlang",
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
           ],
         ),
         content: RichText(
@@ -98,33 +105,24 @@ class _CustomerPageState extends State<CustomerPage> {
             style: const TextStyle(fontSize: 15, color: Colors.black87),
             children: [
               TextSpan(text: "\"${customer.fish}\" "),
-              const TextSpan(
-                text: "mijozini o'chirishni xohlaysizmi?\n\nBu amalni qaytarib bo'lmaydi.",
-              ),
+              const TextSpan(text: "mijozini o'chirishni xohlaysizmi?\n\nBu amalni qaytarib bo'lmaydi."),
             ],
           ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text(
-              "Bekor qilish",
-              style: TextStyle(color: Colors.grey, fontSize: 15),
-            ),
+            child: const Text("Bekor qilish", style: TextStyle(color: Colors.grey, fontSize: 15)),
           ),
           ElevatedButton(
             onPressed: () {
               Navigator.pop(context);
-              context
-                  .read<DeleteCustomerBloc>()
-                  .add(DeleteCustomerE(id: customer.id));
+              context.read<DeleteCustomerBloc>().add(DeleteCustomerE(id: customer.id));
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.red,
               foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
             ),
             child: const Text("O'chirish"),
           ),
@@ -180,8 +178,7 @@ class _CustomerPageState extends State<CustomerPage> {
             if (state is UpdateCustomersSuccess) {
               context.read<GetAllCustomersBloc>().add(GetAllCustomersE());
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                    content: Text("Mijoz muvaffaqiyatli yangilandi")),
+                const SnackBar(content: Text("Mijoz muvaffaqiyatli yangilandi")),
               );
             }
             if (state is UpdateCustomersError) {
@@ -190,7 +187,6 @@ class _CustomerPageState extends State<CustomerPage> {
               );
             }
           },
-          // --- DELETE BLOC LISTENER ---
           child: BlocListener<DeleteCustomerBloc, DeleteCustomerState>(
             listener: (context, state) {
               if (state is DeleteCustomerSuccess) {
@@ -233,16 +229,12 @@ class _CustomerPageState extends State<CustomerPage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
+                          // Header
                           Row(
                             children: [
                               const Expanded(
-                                child: Text(
-                                  "Mijozlar",
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                ),
+                                child: Text("Mijozlar",
+                                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
                               ),
                               ElevatedWidget(
                                 size: 180,
@@ -254,48 +246,77 @@ class _CustomerPageState extends State<CustomerPage> {
                             ],
                           ),
                           const SizedBox(height: 14),
+
+                          // Qidiruv
+                          TextField(
+                            controller: _searchCtrl,
+                            decoration: InputDecoration(
+                              hintText: "Mijoz ismi yoki telefoni bo'yicha qidirish...",
+                              hintStyle: TextStyle(fontSize: 14, color: Colors.grey.shade400),
+                              prefixIcon: const Icon(Icons.search, color: Colors.grey),
+                              suffixIcon: _searchQuery.isNotEmpty
+                                  ? IconButton(
+                                icon: const Icon(Icons.close, color: Colors.grey),
+                                onPressed: () {
+                                  _searchCtrl.clear();
+                                  setState(() => _searchQuery = '');
+                                },
+                              )
+                                  : null,
+                              filled: true,
+                              fillColor: Colors.grey.shade50,
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide(color: Colors.grey.shade200),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: const BorderSide(color: Color(0xFF1877F2)),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 14),
                           const Divider(height: 1),
                           const SizedBox(height: 10),
 
-                          BlocBuilder<GetAllCustomersBloc,
-                              GetAllCustomersState>(
+                          BlocBuilder<GetAllCustomersBloc, GetAllCustomersState>(
                             builder: (context, state) {
                               if (state is GetAllCustomersLoading) {
-                                return const Center(
-                                  child: CircularProgressIndicator(),
-                                );
+                                return const Center(child: CircularProgressIndicator());
                               }
-
                               if (state is GetAllCustomersError) {
                                 return Center(
-                                  child: Text(
-                                    state.message,
-                                    style:
-                                    const TextStyle(color: Colors.red),
-                                  ),
+                                  child: Text(state.message, style: const TextStyle(color: Colors.red)),
                                 );
                               }
-
                               if (state is GetAllCustomersSuccess) {
-                                final rows =
-                                    state.getAllCustomersEntity.data;
+                                var rows = state.getAllCustomersEntity.data;
+
+                                // Qidiruv filter
+                                if (_searchQuery.isNotEmpty) {
+                                  rows = rows.where((r) =>
+                                  r.fish.toLowerCase().contains(_searchQuery) ||
+                                      r.telefon.toLowerCase().contains(_searchQuery) ||
+                                      r.manzil.toLowerCase().contains(_searchQuery)
+                                  ).toList();
+                                }
+
+                                // Qarz bo'yicha saralash — eng ko'p qarz birinchi
+                                rows = List.from(rows)..sort((a, b) =>
+                                    (b.qarzdorlik as num).compareTo(a.qarzdorlik as num));
 
                                 if (rows.isEmpty) {
-                                  return const Center(
-                                    child: Text("Mijozlar mavjud emas"),
-                                  );
+                                  return const Center(child: Text("Mijozlar topilmadi"));
                                 }
 
                                 return _CustomerTable(
                                   rows: rows,
-                                  onEdit: (index, customer) =>
-                                      _openEditCustomerDialog(customer),
-                                  onDelete: (customer) =>
-                                      _openDeleteCustomerDialog(customer),
+                                  onEdit: (index, customer) => _openEditCustomerDialog(customer),
+                                  onDelete: (customer) => _openDeleteCustomerDialog(customer),
                                   onRowTap: _openCustomerDetails,
                                 );
                               }
-
                               return const SizedBox.shrink();
                             },
                           ),
@@ -328,10 +349,7 @@ class _CustomerTable extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final headerStyle = TextStyle(
-      fontWeight: FontWeight.w700,
-      color: Colors.grey.shade800,
-    );
+    final headerStyle = TextStyle(fontWeight: FontWeight.w700, color: Colors.grey.shade800);
 
     return Column(
       children: [
@@ -341,14 +359,9 @@ class _CustomerTable extends StatelessWidget {
             children: [
               SizedBox(width: 70, child: Text("S/N", style: headerStyle)),
               Expanded(flex: 4, child: Text("Mijoz", style: headerStyle)),
-              Expanded(
-                  flex: 2,
-                  child: Text("Telefon nomer", style: headerStyle)),
-              Expanded(
-                  flex: 2, child: Text("Manzil", style: headerStyle)),
-              Expanded(
-                  flex: 2,
-                  child: Text("Qarzdorligi", style: headerStyle)),
+              Expanded(flex: 2, child: Text("Telefon nomer", style: headerStyle)),
+              Expanded(flex: 2, child: Text("Manzil", style: headerStyle)),
+              Expanded(flex: 2, child: Text("Qarzdorligi", style: headerStyle.copyWith(color: Colors.red.shade700))),
               Expanded(flex: 2, child: Text("", style: headerStyle)),
             ],
           ),
@@ -358,27 +371,46 @@ class _CustomerTable extends StatelessWidget {
         ...List.generate(rows.length, (index) {
           final r = rows[index];
           final sn = (index + 1).toString().padLeft(2, '0');
+          final qarz = (r.qarzdorlik as num).toDouble();
+          final hasDebt = qarz > 0;
 
           return _ClickableRow(
             onTap: () => onRowTap(r),
             child: Column(
               children: [
                 Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  padding: const EdgeInsets.symmetric(vertical: 14),
                   child: Row(
                     children: [
                       SizedBox(width: 70, child: Text(sn)),
-                      Expanded(flex: 4, child: Text(r.fish)),
+                      Expanded(flex: 4, child: Text(r.fish, style: const TextStyle(fontWeight: FontWeight.w500))),
                       Expanded(flex: 2, child: Text(r.telefon)),
                       Expanded(flex: 2, child: Text(r.manzil)),
                       Expanded(
-                          flex: 2,
-                          child: Text(r.qarzdorlik.toString())),
+                        flex: 2,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                          decoration: BoxDecoration(
+                            color: hasDebt ? Colors.red.shade50 : Colors.green.shade50,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: hasDebt ? Colors.red.shade200 : Colors.green.shade200,
+                            ),
+                          ),
+                          child: Text(
+                            hasDebt ? "${qarz.toStringAsFixed(2)}\$" : "0\$",
+                            style: TextStyle(
+                              fontWeight: FontWeight.w700,
+                              color: hasDebt ? Colors.red.shade700 : Colors.green.shade700,
+                              fontSize: 13,
+                            ),
+                          ),
+                        ),
+                      ),
                       Expanded(
                         flex: 2,
                         child: Row(
                           children: [
-                            // Edit tugmasi
                             GestureDetector(
                               behavior: HitTestBehavior.opaque,
                               onTap: () => onEdit(index, r),
@@ -388,14 +420,12 @@ class _CustomerTable extends StatelessWidget {
                               ),
                             ),
                             const SizedBox(width: 8),
-                            // Delete tugmasi
                             GestureDetector(
                               behavior: HitTestBehavior.opaque,
                               onTap: () => onDelete(r),
                               child: const Padding(
                                 padding: EdgeInsets.all(6),
-                                child: Icon(Icons.delete_outline,
-                                    color: Colors.red),
+                                child: Icon(Icons.delete_outline, color: Colors.red),
                               ),
                             ),
                           ],

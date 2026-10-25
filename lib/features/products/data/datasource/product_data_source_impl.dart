@@ -54,6 +54,10 @@ class ProductDataSourceImpl implements ProductDataSource {
           'kelgan_narx': create.kelganNarx,
         if (create.jamiNarx != null && create.jamiNarx!.trim().isNotEmpty)
           'jami_narx': create.jamiNarx,
+        if (create.sotishNarxMetr != null && create.sotishNarxMetr!.trim().isNotEmpty)
+          'sotish_narx_metr': create.sotishNarxMetr,
+        if (create.jamiSotishNarx != null && create.jamiSotishNarx!.trim().isNotEmpty)
+          'jami_sotish_narx': create.jamiSotishNarx,
       };
 
       if (create.rasm != null) {
@@ -104,6 +108,8 @@ class ProductDataSourceImpl implements ProductDataSource {
     required String? miqdor,
     required String? kelganNarx,
     required String? jamiNarx,
+    required String? sotishNarxMetr,
+    required String? jamiSotishNarx,
     File? rasm,
   }) async {
     try {
@@ -117,6 +123,8 @@ class ProductDataSourceImpl implements ProductDataSource {
         if (miqdor != null) "miqdor": miqdor,
         if (kelganNarx != null) "kelgan_narx": kelganNarx,
         if (jamiNarx != null) "jami_narx": jamiNarx,
+        if (sotishNarxMetr != null) "sotish_narx_metr": sotishNarxMetr,
+        if (jamiSotishNarx != null) "jami_sotish_narx": jamiSotishNarx,
         if (rasm != null)
           "rasm": await MultipartFile.fromFile(
             rasm.path,

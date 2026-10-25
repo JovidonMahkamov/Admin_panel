@@ -14,17 +14,23 @@ class MonthlySalesDataEntity {
   final int yil;
   final int oy;
   final int jamiSumma;
+  final double kirimSumma;
+  final double umumiyJami;
   final num foyda;
   final int sotuvlarSoni;
   final List<MonthlySaleEntity> sotuvlar;
+  final Map<String, double> kunlikKirimMap;
 
   const MonthlySalesDataEntity({
     required this.yil,
     required this.oy,
     required this.jamiSumma,
+    this.kirimSumma = 0,
+    this.umumiyJami = 0,
     required this.foyda,
     required this.sotuvlarSoni,
     required this.sotuvlar,
+    this.kunlikKirimMap = const {},
   });
 }
 
@@ -43,6 +49,8 @@ class MonthlySaleEntity {
   final String sana;
   final List<MonthlySaleItemEntity> items;
 
+  final double kunlikKirim;
+
   const MonthlySaleEntity({
     required this.id,
     required this.mijozId,
@@ -57,6 +65,7 @@ class MonthlySaleEntity {
     required this.yakunlangan,
     required this.sana,
     required this.items,
+    this.kunlikKirim = 0,
   });
 }
 

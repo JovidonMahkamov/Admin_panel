@@ -4,6 +4,7 @@ class UpdateWorkerRequestEntity {
   final String parol;
   final String telefon;
   final String login;
+  final double foiz;
 
   const UpdateWorkerRequestEntity({
     required this.id,
@@ -11,5 +12,6 @@ class UpdateWorkerRequestEntity {
     required this.parol,
     required this.telefon,
     required this.login,
+    this.foiz = 0,
   });
 }

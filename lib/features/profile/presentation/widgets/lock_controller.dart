@@ -14,7 +14,7 @@ class LockController extends ChangeNotifier {
   Timer? _idleTimer;
   final Duration idleDuration;
 
-  LockController({this.idleDuration = const Duration(minutes: 3)});
+  LockController({this.idleDuration = const Duration(minutes: 20)});
 
   Future<void> init() async {
     final has = await _pass.hasPassword();

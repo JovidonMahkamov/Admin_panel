@@ -26,6 +26,8 @@ class UpdateProductBloc extends Bloc<ProductsEvent, UpdateProductState> {
         miqdor: event.miqdor,
         kelganNarx: event.kelganNarx,
         jamiNarx: event.jamiNarx,
+        sotishNarxMetr: event.sotishNarxMetr,
+        jamiSotishNarx: event.jamiSotishNarx,
         rasm: event.rasm,
       );
       emit(UpdateProductSuccess(updateProductEntity: result));

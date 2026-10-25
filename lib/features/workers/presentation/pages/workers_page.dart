@@ -4,6 +4,9 @@ import 'package:admin_panel/features/workers/presentation/bloc/get_all_worker/ge
 import 'package:admin_panel/features/workers/presentation/bloc/worker_event.dart';
 import 'package:admin_panel/features/workers/presentation/widgets/add_worker_dialog_wg.dart';
 import 'package:flutter/material.dart';
+import 'package:admin_panel/core/networks/api_urls.dart';
+import 'package:admin_panel/core/networks/dio_client.dart';
+import 'package:admin_panel/core/di/services_locator.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../dashboard/presentation/widgets/elvated_button_wg.dart';
@@ -20,11 +23,26 @@ class WorkersPage extends StatefulWidget {
 }
 
 class _WorkersPageState extends State<WorkersPage> {
+  List<Map<String, dynamic>> _foizHisob = [];
+
   @override
   void initState() {
     super.initState();
+    _loadFoizHisob();
     context.read<GetAllWorkerBloc>().add(GetAllWorkerE());
+
   }
+
+  Future<void> _loadFoizHisob() async {
+    try {
+      final dio = sl<DioClient>();
+      final resp = await dio.get(ApiUrls.getIshchiFoizHisob);
+      final list = (resp.data['data']['ishchilar'] as List<dynamic>? ?? [])
+          .map((e) => e as Map<String, dynamic>).toList();
+      if (mounted) setState(() => _foizHisob = list);
+    } catch (_) {}
+  }
+
 
   Future<void> _confirmDelete(GetWorkerEntity worker) async {
     final result = await showDialog<bool>(
@@ -121,6 +139,7 @@ class _WorkersPageState extends State<WorkersPage> {
         initial: WorkerFormData(
           id: worker.id,
           fish: worker.fish,
+          foiz: worker.foiz,
           telefon: worker.telefon,
           login: worker.login,
           parol: worker.parol,
@@ -133,6 +152,7 @@ class _WorkersPageState extends State<WorkersPage> {
               parol: updatedWorker.parol,
               login: updatedWorker.login,
               telefon: updatedWorker.telefon,
+              foiz: updatedWorker.foiz,
             ),
           );
         },
@@ -234,6 +254,73 @@ class _WorkersPageState extends State<WorkersPage> {
                         ],
                       ),
                       const SizedBox(height: 14),
+                      // ===== FOIZ HISOB PANEL =====
+                      if (_foizHisob.isNotEmpty)
+                        Container(
+                          margin: const EdgeInsets.only(bottom: 14),
+                          padding: const EdgeInsets.all(14),
+                          decoration: BoxDecoration(
+                            color: Colors.green.shade50,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.green.shade200),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Icon(Icons.calculate_outlined, color: Colors.green.shade700, size: 18),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    "Joriy oy ish haqi (foiz asosida)",
+                                    style: TextStyle(fontWeight: FontWeight.w700, color: Colors.green.shade700, fontSize: 13),
+                                  ),
+                                  const Spacer(),
+                                  IconButton(
+                                    icon: Icon(Icons.refresh, size: 18, color: Colors.green.shade600),
+                                    onPressed: _loadFoizHisob,
+                                    padding: EdgeInsets.zero,
+                                    constraints: const BoxConstraints(),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 10),
+                              ..._foizHisob.where((i) => (i['foiz'] as num) > 0).map((i) => Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 4),
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      flex: 3,
+                                      child: Text(i['fish'] ?? '', style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+                                    ),
+                                    Expanded(
+                                      flex: 2,
+                                      child: Text(
+                                        '${i['foiz']}%',
+                                        style: TextStyle(color: Colors.blue.shade600, fontSize: 12, fontWeight: FontWeight.w600),
+                                      ),
+                                    ),
+                                    Expanded(
+                                      flex: 3,
+                                      child: Text(
+                                        'Savdo: ${(i['oy_savdo'] as num).toStringAsFixed(2)}\$',
+                                        style: const TextStyle(fontSize: 12, color: Colors.grey),
+                                      ),
+                                    ),
+                                    Expanded(
+                                      flex: 3,
+                                      child: Text(
+                                        'Oylik: +${(i['oylik_haqq'] as num).toStringAsFixed(2)}\$',
+                                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: Colors.green.shade700),
+                                        textAlign: TextAlign.right,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              )),
+                            ],
+                          ),
+                        ),
                       const Divider(height: 1),
                       const SizedBox(height: 10),
 
@@ -331,10 +418,8 @@ class _WorkersTable extends StatelessWidget {
             children: [
               SizedBox(width: 70, child: Text("S/N", style: headerStyle)),
               Expanded(flex: 4, child: Text("Ishchi", style: headerStyle)),
-              Expanded(
-                flex: 3,
-                child: Text("Ishchining nomeri", style: headerStyle),
-              ),
+              Expanded(flex: 3, child: Text("Ishchining nomeri", style: headerStyle)),
+              Expanded(flex: 2, child: Text("Foiz (%)", style: headerStyle.copyWith(color: Colors.green.shade700))),
               Expanded(flex: 3, child: Text("Login", style: headerStyle)),
               Expanded(flex: 3, child: Text("Parol", style: headerStyle)),
               Expanded(flex: 3, child: Text("Yaratilgan", style: headerStyle)),
@@ -357,6 +442,7 @@ class _WorkersTable extends StatelessWidget {
                     SizedBox(width: 70, child: Text(sn)),
                     Expanded(flex: 4, child: Text(r.fish)),
                     Expanded(flex: 3, child: Text(r.telefon)),
+                    Expanded(flex: 2, child: Text(r.foiz > 0 ? '${r.foiz}%' : '-', style: TextStyle(color: r.foiz > 0 ? Colors.green.shade700 : Colors.grey, fontWeight: FontWeight.w600))),
                     Expanded(flex: 3, child: Text(r.login)),
                     Expanded(flex: 3, child: Text(r.parol)),
                     Expanded(flex: 3, child: Text(_formatDate(r.yaratilgan))),
@@ -393,4 +479,3 @@ class _WorkersTable extends StatelessWidget {
     return '$day.$month.$year';
   }
 }
-

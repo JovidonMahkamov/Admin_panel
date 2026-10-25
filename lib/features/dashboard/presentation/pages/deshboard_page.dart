@@ -233,7 +233,11 @@ class _DashboardPageState extends State<DashboardPage> {
                   ),
                 ),
               );
-              context.read<GetDashboardBloc>().add(const GetDashboardE());
+              Future.delayed(const Duration(milliseconds: 500), () {
+                if (context.mounted) {
+                  context.read<GetDashboardBloc>().add(const GetDashboardE());
+                }
+              });
             }
             if (state is FinishSalesError) {
               ScaffoldMessenger.of(context).showSnackBar(

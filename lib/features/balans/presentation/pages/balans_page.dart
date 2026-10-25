@@ -299,7 +299,8 @@ class _BalansCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(label,
+                Text(
+                    label,
                     style: TextStyle(
                         fontSize: 12.sp, color: Colors.grey.shade600)),
                 SizedBox(height: 4.h),

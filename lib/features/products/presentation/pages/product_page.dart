@@ -216,7 +216,6 @@ class _ProductPageState extends State<ProductPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    // ===== SUMMARY KARTOCHKALAR =====
                     BlocBuilder<GetProductsBloc, GetProductsState>(
                       builder: (context, state) {
                         if (state is GetProductsSuccess) {
@@ -226,8 +225,6 @@ class _ProductPageState extends State<ProductPage> {
                       },
                     ),
                     const SizedBox(height: 16),
-
-                    // ===== TOVARLAR JADVALI =====
                     Container(
                       padding: const EdgeInsets.all(18),
                       decoration: BoxDecoration(
@@ -264,7 +261,6 @@ class _ProductPageState extends State<ProductPage> {
                             ],
                           ),
                           const SizedBox(height: 14),
-                          // ===== QIDIRUV =====
                           TextField(
                             controller: _searchCtrl,
                             decoration: InputDecoration(
@@ -504,6 +500,7 @@ class ProductRow {
   final double sotilganMetr;
   final int sotilganPochka;
   final DateTime createdAt;
+  final String sotishNarxMetr;
 
   const ProductRow({
     required this.id,
@@ -522,6 +519,7 @@ class ProductRow {
     required this.sotilganMiqdor,
     required this.sotilganMetr,
     required this.sotilganPochka,
+    this.sotishNarxMetr = '',
   });
 
   ProductRow copyWith({
@@ -541,6 +539,7 @@ class ProductRow {
     int? sotilganMiqdor,
     double? sotilganMetr,
     int? sotilganPochka,
+    String? sotishNarxMetr,
   }) {
     return ProductRow(
       id: id ?? this.id,
@@ -559,9 +558,12 @@ class ProductRow {
       sotilganMetr: sotilganMetr ?? this.sotilganMetr,
       sotilganMiqdor: sotilganMiqdor ?? this.sotilganMiqdor,
       sotilganPochka: sotilganPochka ?? this.sotilganPochka,
+      sotishNarxMetr: sotishNarxMetr ?? this.sotishNarxMetr,
     );
   }
 }
+
+// ===== Jadval =====
 
 // ===== Jadval =====
 
@@ -581,156 +583,258 @@ class ProductsTable extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final headerStyle = TextStyle(
-      fontWeight: FontWeight.w700,
-      color: Colors.grey.shade800,
-      fontSize: 14,
-    );
-
     return LayoutBuilder(
       builder: (context, constraints) {
-        final tableWidth = constraints.maxWidth < 1100 ? 1100.0 : constraints.maxWidth;
         return SingleChildScrollView(
           scrollDirection: Axis.horizontal,
-          child: SizedBox(
-            width: tableWidth,
-            child: Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  child: Row(
-                    children: [
-                      Expanded(flex: 1, child: Text("S/N", style: headerStyle)),
-                      Expanded(flex: 5, child: Text("Tovar Nomi", style: headerStyle)),
-                      Expanded(flex: 2, child: Text("Narxi", style: headerStyle)),
-                      Expanded(flex: 2, child: Text("Miqdor", style: headerStyle)),
-                      Expanded(flex: 2, child: Text("Kelgan narx", style: headerStyle)),
-                      Expanded(flex: 2, child: Text("Jami narx", style: headerStyle)),
-                      Expanded(
-                        flex: 2,
-                        child: Text(
-                          "Sotildi",
-                          style: headerStyle.copyWith(color: Colors.red.shade700),
-                        ),
-                      ),
-                      Expanded(flex: 2, child: Text("QR kod", style: headerStyle)),
-                      Expanded(flex: 2, child: Text("", style: headerStyle)),
-                    ],
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minWidth: constraints.maxWidth),
+            child: DataTable(
+              headingRowColor: WidgetStateProperty.all(const Color(0xFFF5F7FA)),
+              headingTextStyle: const TextStyle(
+                fontWeight: FontWeight.w700,
+                fontSize: 13,
+                color: Color(0xFF374151),
+              ),
+              dataTextStyle: const TextStyle(fontSize: 13, color: Color(0xFF1F2937)),
+              columnSpacing: 20,
+              horizontalMargin: 16,
+              dividerThickness: 1,
+              dataRowMinHeight: 64,
+              dataRowMaxHeight: 80,
+              columns: [
+                DataColumn(label: _hdr("S/N")),
+                DataColumn(label: _hdr("Tovar")),
+                DataColumn(label: _hdr("Sotish narxi")),
+                DataColumn(label: _hdr("Miqdor")),
+                DataColumn(label: _hdr("Kelgan narx")),
+                DataColumn(label: _hdr("Jami narx")),
+                DataColumn(label: _hdr("Sotildi", color: Colors.red.shade600)),
+                DataColumn(label: _hdr("QR")),
+                DataColumn(label: _hdr("")),
+              ],
+              rows: List.generate(rows.length, (index) {
+                final r = rows[index];
+                final isEven = index % 2 == 0;
+                return DataRow(
+                  color: WidgetStateProperty.all(
+                    isEven ? Colors.white : const Color(0xFFFAFAFC),
                   ),
-                ),
-                Divider(height: 1, color: Colors.grey.shade300),
-                ...List.generate(rows.length, (index) {
-                  final r = rows[index];
-                  return _HoverRow(
-                    child: Column(
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                flex: 5,
-                                child: Row(
-                                  children: [
-                                    Expanded(
-                                      flex: 1,
-                                      child: Text(
-                                        (index + 1).toString().padLeft(2, '0'),
-                                        style: const TextStyle(fontWeight: FontWeight.w500),
-                                      ),
-                                    ),
-                                    _ProductImage(path: r.imagePath),
-                                    const SizedBox(width: 12),
-                                    Expanded(
-                                      child: Text(
-                                        r.productName,
-                                        style: const TextStyle(fontWeight: FontWeight.w500),
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Expanded(
-                                flex: 2,
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text("Metr: ${r.metrPrice}", style: const TextStyle(fontSize: 14)),
-                                    Text("Dona: ${r.donaPrice}", style: const TextStyle(fontSize: 14)),
-                                    Text("Pachka: ${r.packetPrice}", style: const TextStyle(fontSize: 14)),
-                                  ],
-                                ),
-                              ),
-                              Expanded(
-                                flex: 2,
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text("Metr: ${r.metri}", style: const TextStyle(fontSize: 14)),
-                                    Text("Dona: ${r.miqdori}", style: const TextStyle(fontSize: 14)),
-                                    Text("Pachka: ${r.pachka}", style: const TextStyle(fontSize: 14)),
-                                  ],
-                                ),
-                              ),
-                              Expanded(flex: 2, child: Text(r.kelganNarx)),
-                              Expanded(flex: 2, child: Text(r.jamiNarx)),
-                              Expanded(
-                                flex: 2,
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text("Metr: ${r.sotilganMetr}", style: const TextStyle(fontSize: 14)),
-                                    Text('Dona: ${r.sotilganMiqdor}', style: const TextStyle(fontSize: 14)),
-                                    Text('Pochka: ${r.sotilganPochka}', style: const TextStyle(fontSize: 14)),
-                                  ],
-                                ),
-                              ),
-                              Expanded(
-                                flex: 2,
-                                child: IconButton(
-                                  onPressed: () => onQrTap(r),
-                                  icon: const Icon(Icons.qr_code),
-                                ),
-                              ),
-                              Expanded(
-                                flex: 2,
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  children: [
-                                    IconButton(
-                                      onPressed: () => onEdit(index, r),
-                                      icon: const Icon(Icons.edit, color: Colors.blue),
-                                      tooltip: "Tahrirlash",
-                                    ),
-                                    IconButton(
-                                      onPressed: () => onDelete(index, r),
-                                      icon: const Icon(Icons.delete, color: Colors.red),
-                                      tooltip: "O'chirish",
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
+                  cells: [
+                    // S/N
+                    DataCell(
+                      Container(
+                        width: 32,
+                        height: 32,
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF0B74E5).withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          (index + 1).toString().padLeft(2, '0'),
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w700,
+                            fontSize: 12,
+                            color: Color(0xFF0B74E5),
                           ),
                         ),
-                        Divider(height: 1, color: Colors.grey.shade200),
-                      ],
+                      ),
                     ),
-                  );
-                }),
-              ],
+                    // Tovar nomi + rasm
+                    DataCell(
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          _ProductImage(path: r.imagePath),
+                          const SizedBox(width: 10),
+                          ConstrainedBox(
+                            constraints: const BoxConstraints(maxWidth: 160),
+                            child: Text(
+                              r.productName,
+                              style: const TextStyle(fontWeight: FontWeight.w600),
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 2,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    // Sotish narxi (admin kiritgan)
+                    DataCell(
+                      _MultiLineCell(lines: [
+                        if (r.sotishNarxMetr.isNotEmpty) _CellLine("Metr:", r.sotishNarxMetr, Colors.green.shade700),
+                        if (r.donaPrice.isNotEmpty)       _CellLine("Dona:", r.donaPrice, Colors.blue.shade700),
+                        if (r.packetPrice.isNotEmpty)     _CellLine("Pachka:", r.packetPrice, Colors.purple.shade700),
+                        if (r.sotishNarxMetr.isEmpty && r.donaPrice.isEmpty && r.packetPrice.isEmpty)
+                          _CellLine("", "—", Colors.grey),
+                      ]),
+                    ),
+                    // Miqdor
+                    DataCell(
+                      _MultiLineCell(lines: [
+                        if (r.metri.isNotEmpty)  _CellLine("Metr:", r.metri, Colors.teal.shade700),
+                        if (r.miqdori.isNotEmpty) _CellLine("Dona:", r.miqdori, Colors.indigo.shade700),
+                        if (r.pachka.isNotEmpty)  _CellLine("Pachka:", r.pachka, Colors.orange.shade700),
+                        if (r.metri.isEmpty && r.miqdori.isEmpty && r.pachka.isEmpty)
+                          _CellLine("", "—", Colors.grey),
+                      ]),
+                    ),
+                    // Kelgan narx
+                    DataCell(
+                      _PriceChip(value: r.kelganNarx.isEmpty ? "—" : r.kelganNarx, color: const Color(0xFF374151)),
+                    ),
+                    // Jami narx
+                    DataCell(
+                      _PriceChip(value: r.jamiNarx.isEmpty ? "—" : r.jamiNarx, color: const Color(0xFF0B74E5)),
+                    ),
+                    // Sotildi
+                    DataCell(
+                      _MultiLineCell(lines: [
+                        _CellLine("Metr:", r.sotilganMetr.toString(), Colors.red.shade600),
+                        _CellLine("Dona:", r.sotilganMiqdor.toString(), Colors.red.shade600),
+                        _CellLine("Pachka:", r.sotilganPochka.toString(), Colors.red.shade600),
+                      ]),
+                    ),
+                    // QR
+                    DataCell(
+                      IconButton(
+                        onPressed: () => onQrTap(r),
+                        icon: Icon(Icons.qr_code_2_rounded, color: Colors.grey.shade600, size: 28),
+                        tooltip: "QR ko'rish",
+                      ),
+                    ),
+                    // Amallar
+                    DataCell(
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          _ActionBtn(
+                            icon: Icons.edit_rounded,
+                            color: const Color(0xFF0B74E5),
+                            tooltip: "Tahrirlash",
+                            onTap: () => onEdit(index, r),
+                          ),
+                          const SizedBox(width: 4),
+                          _ActionBtn(
+                            icon: Icons.delete_rounded,
+                            color: Colors.red,
+                            tooltip: "O'chirish",
+                            onTap: () => onDelete(index, r),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                );
+              }),
             ),
           ),
         );
       },
     );
   }
+
+  Widget _hdr(String text, {Color? color}) => Text(
+    text,
+    style: TextStyle(color: color),
+  );
+}
+
+// ===== Yordamchi widgetlar =====
+
+class _CellLine {
+  final String label;
+  final String value;
+  final Color color;
+  _CellLine(this.label, this.value, this.color);
+}
+
+class _MultiLineCell extends StatelessWidget {
+  final List<_CellLine> lines;
+  const _MultiLineCell({required this.lines});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: lines.map((l) => Padding(
+        padding: const EdgeInsets.symmetric(vertical: 1.5),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (l.label.isNotEmpty) ...[
+              Text(
+                l.label,
+                style: TextStyle(fontSize: 11, color: Colors.grey.shade500, fontWeight: FontWeight.w500),
+              ),
+              const SizedBox(width: 4),
+            ],
+            Text(
+              l.value,
+              style: TextStyle(fontSize: 13, color: l.color, fontWeight: FontWeight.w600),
+            ),
+          ],
+        ),
+      )).toList(),
+    );
+  }
+}
+
+class _PriceChip extends StatelessWidget {
+  final String value;
+  final Color color;
+  const _PriceChip({required this.value, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: color.withOpacity(0.2)),
+      ),
+      child: Text(
+        value,
+        style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13, color: color),
+      ),
+    );
+  }
+}
+
+class _ActionBtn extends StatelessWidget {
+  final IconData icon;
+  final Color color;
+  final String tooltip;
+  final VoidCallback onTap;
+  const _ActionBtn({required this.icon, required this.color, required this.tooltip, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: tooltip,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(8),
+        child: Container(
+          width: 34,
+          height: 34,
+          decoration: BoxDecoration(
+            color: color.withOpacity(0.08),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          alignment: Alignment.center,
+          child: Icon(icon, color: color, size: 18),
+        ),
+      ),
+    );
+  }
 }
 
 class _ProductImage extends StatelessWidget {
   final String path;
-
   const _ProductImage({required this.path});
 
   @override
@@ -738,47 +842,34 @@ class _ProductImage extends StatelessWidget {
     final imageUrl = ProductMediaHelper.fullUrl(path);
     if (imageUrl.isEmpty) {
       return Container(
-        width: 54,
-        height: 54,
-        color: Colors.grey.shade200,
+        width: 48,
+        height: 48,
+        decoration: BoxDecoration(
+          color: Colors.grey.shade100,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: Colors.grey.shade200),
+        ),
         alignment: Alignment.center,
-        child: Icon(Icons.image, size: 20, color: Colors.grey.shade600),
+        child: Icon(Icons.image_outlined, size: 20, color: Colors.grey.shade400),
       );
     }
     return ClipRRect(
       borderRadius: BorderRadius.circular(10),
       child: Image.network(
         imageUrl,
-        width: 54,
-        height: 54,
+        width: 48,
+        height: 48,
         fit: BoxFit.cover,
-        errorBuilder: (_, __, ___) {
-          return Container(
-            width: 54,
-            height: 54,
-            color: Colors.grey.shade200,
-            alignment: Alignment.center,
-            child: Icon(Icons.broken_image, size: 20, color: Colors.grey.shade600),
-          );
-        },
-      ),
-    );
-  }
-}
-
-class _HoverRow extends StatelessWidget {
-  final Widget child;
-
-  const _HoverRow({required this.child});
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        hoverColor: Colors.black.withOpacity(0.03),
-        splashColor: Colors.black.withOpacity(0.04),
-        child: child,
+        errorBuilder: (_, __, ___) => Container(
+          width: 48,
+          height: 48,
+          decoration: BoxDecoration(
+            color: Colors.grey.shade100,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          alignment: Alignment.center,
+          child: Icon(Icons.broken_image_outlined, size: 20, color: Colors.grey.shade400),
+        ),
       ),
     );
   }
@@ -795,7 +886,9 @@ extension ProductEntityMapper on ProductEntity {
       pachka: pochka ?? '',
       metri: metr ?? '',
       miqdori: miqdor ?? '',
-      kelganNarx: kelganNarx ?? '',
+      kelganNarx: (kelganNarx != null && kelganNarx!.isNotEmpty)
+          ? kelganNarx!
+          : narxMetr ?? '',          // ← kelganNarx bo'sh bo'lsa narxMetr ni ko'rsat
       jamiNarx: jamiNarx ?? '',
       imagePath: rasm ?? '',
       qrCodePath: qrKod ?? '',
@@ -803,6 +896,7 @@ extension ProductEntityMapper on ProductEntity {
       sotilganMiqdor: sotilganMiqdor ?? 0,
       sotilganMetr: sotilganMetr ?? 0,
       sotilganPochka: sotilganPochka ?? 0,
+      sotishNarxMetr: sotishNarxMetr ?? '',
     );
   }
 }

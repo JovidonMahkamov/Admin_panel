@@ -18,11 +18,12 @@ class UpdateWorkerBloc extends Bloc<WorkerEvent, UpdateWorkerState> {
     try {
       final result = await updateWorkerUseCase(
         UpdateWorkerRequestEntity(
-        id: event.id,
-        fish: event.fish,
-        login: event.login,
-        parol: event.parol,
-        telefon: event.telefon,
+          id: event.id,
+          fish: event.fish,
+          login: event.login,
+          parol: event.parol,
+          telefon: event.telefon,
+          foiz: event.foiz,
         ),
       );
       emit(UpdateWorkerSuccess(updateWorkerResponseEntity: result));

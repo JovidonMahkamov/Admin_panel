@@ -7,6 +7,6 @@ abstract class WorkerDataSource{
   Future<GetAllWorkersModel> getAllWorker();
   Future<CreateWorkerResponseModel> createWorker({required String fish, required String login, required String parol, required String telefon});
   Future<DeleteWorkerResponseModel> deleteWorker({required int id});
-  Future<UpdateWorkerResponseModel> updateWorker({required int id, required String fish, required String parol, required String login, required String telefon});
+  Future<UpdateWorkerResponseModel> updateWorker({required int id, required String fish, required String parol, required String login, required String telefon, double foiz = 0});
 
 }

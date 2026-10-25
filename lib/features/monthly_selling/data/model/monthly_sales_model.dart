@@ -23,8 +23,11 @@ class MonthlySalesDataModel extends MonthlySalesDataEntity {
     required super.yil,
     required super.oy,
     required super.jamiSumma,
+    super.kirimSumma,
+    super.umumiyJami,
     required super.foyda,
     required super.sotuvlarSoni,
+    super.kunlikKirimMap,
     required List<MonthlySaleModel> super.sotuvlar,
   });
 
@@ -33,8 +36,12 @@ class MonthlySalesDataModel extends MonthlySalesDataEntity {
       yil: _toInt(json['yil']),
       oy: _toInt(json['oy']),
       jamiSumma: _toInt(json['jami_summa']),
+      kirimSumma: (json['kirim_summa'] as num? ?? 0).toDouble(),
+      umumiyJami: (json['umumiy_jami'] as num? ?? 0).toDouble(),
       foyda: _toInt(json['foyda']),
       sotuvlarSoni: _toInt(json['sotuvlar_soni']),
+      kunlikKirimMap: (json['kunlik_kirim'] as Map<String, dynamic>? ?? {})
+          .map((k, v) => MapEntry(k, (v as num).toDouble())),
       sotuvlar: (json['sotuvlar'] as List<dynamic>? ?? [])
           .map((e) => MonthlySaleModel.fromJson(e as Map<String, dynamic>))
           .toList(),
@@ -56,6 +63,7 @@ class MonthlySaleModel extends MonthlySaleEntity {
     required super.izoh,
     required super.yakunlangan,
     required super.sana,
+    super.kunlikKirim,
     required List<MonthlySaleItemModel> super.items,
   });
 
@@ -73,6 +81,7 @@ class MonthlySaleModel extends MonthlySaleEntity {
       izoh: json['izoh'] ?? '',
       yakunlangan: json['yakunlangan'] ?? false,
       sana: json['sana'] ?? '',
+      kunlikKirim: (json['kunlik_kirim'] as num? ?? 0).toDouble(),
       items: (json['items'] as List<dynamic>? ?? [])
           .map((e) => MonthlySaleItemModel.fromJson(e as Map<String, dynamic>))
           .toList(),
@@ -106,6 +115,14 @@ class MonthlySaleItemModel extends MonthlySaleItemEntity {
       jami: _toInt(json['jami']),
     );
   }
+}
+
+double _toDouble(dynamic value) {
+  if (value == null) return 0.0;
+  if (value is double) return value;
+  if (value is int) return value.toDouble();
+  if (value is String) return double.tryParse(value) ?? 0.0;
+  return 0.0;
 }
 
 int _toInt(dynamic value) {

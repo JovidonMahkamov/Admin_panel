@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class AddEditWorkerDialog extends StatefulWidget {
-  final WorkerFormData ? initial;
+  final WorkerFormData? initial;
   final ValueChanged<WorkerFormData>? onSave;
   final String title;
 
@@ -29,14 +29,20 @@ class _AddEditWorkerDialogState extends State<AddEditWorkerDialog> {
   late final TextEditingController _phoneCtrl;
   late final TextEditingController _loginCtrl;
   late final TextEditingController _passCtrl;
+  late final TextEditingController _foizCtrl;
 
   @override
   void initState() {
     super.initState();
-    _nameCtrl = TextEditingController(text: widget.initial?.fish ?? "");
-    _phoneCtrl = TextEditingController(text: widget.initial?.telefon ?? "");
-    _loginCtrl = TextEditingController(text: widget.initial?.login ?? "");
-    _passCtrl = TextEditingController(text: widget.initial?.parol ?? "");
+    _nameCtrl  = TextEditingController(text: widget.initial?.fish ?? '');
+    _phoneCtrl = TextEditingController(text: widget.initial?.telefon ?? '');
+    _loginCtrl = TextEditingController(text: widget.initial?.login ?? '');
+    _passCtrl  = TextEditingController(text: widget.initial?.parol ?? '');
+    _foizCtrl  = TextEditingController(
+      text: widget.initial != null && widget.initial!.foiz > 0
+          ? widget.initial!.foiz.toString()
+          : '',
+    );
   }
 
   @override
@@ -45,6 +51,7 @@ class _AddEditWorkerDialogState extends State<AddEditWorkerDialog> {
     _phoneCtrl.dispose();
     _loginCtrl.dispose();
     _passCtrl.dispose();
+    _foizCtrl.dispose();
     super.dispose();
   }
 
@@ -57,6 +64,7 @@ class _AddEditWorkerDialogState extends State<AddEditWorkerDialog> {
       telefon: _phoneCtrl.text.trim(),
       login: _loginCtrl.text.trim(),
       parol: _passCtrl.text.trim(),
+      foiz: double.tryParse(_foizCtrl.text.trim()) ?? 0,
     );
 
     final isEdit = widget.initial != null;
@@ -84,30 +92,21 @@ class _AddEditWorkerDialogState extends State<AddEditWorkerDialog> {
       listener: (context, state) {
         if (state is CreateWorkerSuccess) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(state.createWorkerResponseEntity.message),
-            ),
+            SnackBar(content: Text(state.createWorkerResponseEntity.message)),
           );
-
-          widget.onSave?.call(
-            WorkerFormData(
-              fish: _nameCtrl.text.trim(),
-              telefon: _phoneCtrl.text.trim(),
-              login: _loginCtrl.text.trim(),
-              parol: _passCtrl.text.trim(),
-            ),
-          );
-
+          widget.onSave?.call(WorkerFormData(
+            fish: _nameCtrl.text.trim(),
+            telefon: _phoneCtrl.text.trim(),
+            login: _loginCtrl.text.trim(),
+            parol: _passCtrl.text.trim(),
+            foiz: double.tryParse(_foizCtrl.text.trim()) ?? 0,
+          ));
           context.read<GetAllWorkerBloc>().add(const GetAllWorkerE());
           Navigator.pop(context);
         }
-
         if (state is CreateWorkerError) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(state.message),
-              backgroundColor: Colors.red,
-            ),
+            SnackBar(content: Text(state.message), backgroundColor: Colors.red),
           );
         }
       },
@@ -128,16 +127,12 @@ class _AddEditWorkerDialogState extends State<AddEditWorkerDialog> {
                   mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
+                    // Sarlavha
                     Row(
                       children: [
                         Expanded(
-                          child: Text(
-                            widget.title,
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
+                          child: Text(widget.title,
+                              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
                         ),
                         IconButton(
                           onPressed: isLoading ? null : () => Navigator.pop(context),
@@ -146,107 +141,98 @@ class _AddEditWorkerDialogState extends State<AddEditWorkerDialog> {
                       ],
                     ),
                     const SizedBox(height: 16),
-                    LayoutBuilder(
-                      builder: (context, c) {
-                        final wide = c.maxWidth >= 760;
 
-                        Widget fieldGrid() {
-                          if (wide) {
-                            return Column(
-                              children: [
-                                Row(
-                                  children: [
-                                    Expanded(
-                                      child: _LabeledField(
-                                        label: "F.I.Sh",
-                                        hint: "AAA BBB CCC",
-                                        controller: _nameCtrl,
-                                        validator: _required,
-                                        enabled: !isLoading,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 18),
-                                    Expanded(
-                                      child: _LabeledField(
-                                        label: "Telefon",
-                                        hint: "+998 XX XXXX XX XX",
-                                        controller: _phoneCtrl,
-                                        validator: _required,
-                                        enabled: !isLoading,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 18),
-                                Row(
-                                  children: [
-                                    Expanded(
-                                      child: _LabeledField(
-                                        label: "Login",
-                                        hint: "XXXXXXXX",
-                                        controller: _loginCtrl,
-                                        validator: _required,
-                                        enabled: !isLoading,                                      ),
-                                    ),
-                                    const SizedBox(width: 18),
-                                    Expanded(
-                                      child: _LabeledField(
-                                        label: "Parol",
-                                        hint: "********",
-                                        controller: _passCtrl,
-                                        obscureText: true,
-                                        validator: _required,
-                                        enabled: !isLoading,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            );
-                          }
+                    // F.I.Sh va Telefon
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _LabeledField(
+                            label: 'F.I.Sh',
+                            hint: 'AAA BBB CCC',
+                            controller: _nameCtrl,
+                            validator: _required,
+                            enabled: !isLoading,
+                          ),
+                        ),
+                        const SizedBox(width: 18),
+                        Expanded(
+                          child: _LabeledField(
+                            label: 'Telefon',
+                            hint: '+998 XX XXXX XX XX',
+                            controller: _phoneCtrl,
+                            validator: _required,
+                            enabled: !isLoading,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
 
-                          return Column(
-                            children: [
-                              _LabeledField(
-                                label: "F.I.Sh",
-                                hint: "AAA BBB CCC",
-                                controller: _nameCtrl,
-                                validator: _required,
-                                enabled: !isLoading,
-                              ),
-                              const SizedBox(height: 18),
-                              _LabeledField(
-                                label: "Telefon",
-                                hint: "+998 XX XXX XX XX",
-                                controller: _phoneCtrl,
-                                validator: _required,
-                                enabled: !isLoading,
-                              ),
-                              const SizedBox(height: 18),
-                              _LabeledField(
-                                label: "Login",
-                                hint: "XXXXXXX",
-                                controller: _loginCtrl,
-                                validator: _required,
-                                enabled: !isLoading,
-                              ),
-                              const SizedBox(height: 18),
-                              _LabeledField(
-                                label: "Parol",
-                                hint: "********",
-                                controller: _passCtrl,
-                                obscureText: true,
-                                validator: _required,
-                                enabled: !isLoading,
-                              ),
-                            ],
-                          );
-                        }
+                    // Login va Parol
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _LabeledField(
+                            label: 'Login',
+                            hint: 'XXXXXXXX',
+                            controller: _loginCtrl,
+                            validator: _required,
+                            enabled: !isLoading,
+                          ),
+                        ),
+                        const SizedBox(width: 18),
+                        Expanded(
+                          child: _LabeledField(
+                            label: 'Parol',
+                            hint: '********',
+                            controller: _passCtrl,
+                            obscureText: true,
+                            validator: _required,
+                            enabled: !isLoading,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
 
-                        return fieldGrid();
-                      },
+                    // Foiz - alohida qator
+                    Row(
+                      children: [
+                        SizedBox(
+                          width: 200,
+                          child: _LabeledField(
+                            label: 'Ish haqi foizi (%)',
+                            hint: 'Masalan: 2.5',
+                            controller: _foizCtrl,
+                            enabled: !isLoading,
+                            keyboardType: TextInputType.number,
+                            validator: (v) {
+                              if (v == null || v.trim().isEmpty) return null;
+                              if (double.tryParse(v.trim()) == null) return "Raqam kiriting";
+                              return null;
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Container(
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: Colors.green.shade50,
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(color: Colors.green.shade200),
+                            ),
+                            child: Text(
+                              'Masalan: 2% bo\'lsa, ishchi 1000\$ savdo qilsa 20\$ oylik haqqi hisoblanadi.',
+                              style: TextStyle(fontSize: 12, color: Colors.green.shade700),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 26),
+
+                    // Saqlash tugmasi
                     Align(
                       alignment: Alignment.centerRight,
                       child: SizedBox(
@@ -255,7 +241,7 @@ class _AddEditWorkerDialogState extends State<AddEditWorkerDialog> {
                             ? const Center(child: CircularProgressIndicator())
                             : ElevatedWidget(
                           onPressed: _save,
-                          text: isEdit ? "Yangilash" : "Saqlash",
+                          text: isEdit ? 'Yangilash' : 'Saqlash',
                           backgroundColor: Colors.blueAccent,
                           textColor: Colors.white,
                         ),
@@ -272,7 +258,7 @@ class _AddEditWorkerDialogState extends State<AddEditWorkerDialog> {
   }
 
   String? _required(String? v) {
-    if (v == null || v.trim().isEmpty) return "Majburiy";
+    if (v == null || v.trim().isEmpty) return 'Majburiy';
     return null;
   }
 }
@@ -283,6 +269,7 @@ class _LabeledField extends StatelessWidget {
   final TextEditingController controller;
   final bool obscureText;
   final bool enabled;
+  final TextInputType? keyboardType;
   final String? Function(String?)? validator;
 
   const _LabeledField({
@@ -291,6 +278,7 @@ class _LabeledField extends StatelessWidget {
     required this.controller,
     this.obscureText = false,
     this.enabled = true,
+    this.keyboardType,
     this.validator,
   });
 
@@ -306,6 +294,7 @@ class _LabeledField extends StatelessWidget {
           obscureText: obscureText,
           validator: validator,
           enabled: enabled,
+          keyboardType: keyboardType,
           decoration: InputDecoration(
             hintText: hint,
             isDense: true,
@@ -324,6 +313,7 @@ class WorkerFormData {
   final String telefon;
   final String login;
   final String parol;
+  final double foiz;
 
   const WorkerFormData({
     this.id,
@@ -331,5 +321,6 @@ class WorkerFormData {
     required this.telefon,
     required this.login,
     required this.parol,
+    this.foiz = 0,
   });
 }

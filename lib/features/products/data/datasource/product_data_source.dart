@@ -25,6 +25,8 @@ abstract class ProductDataSource {
     required String? miqdor,
     required String? kelganNarx,
     required String? jamiNarx,
+    required String? sotishNarxMetr,
+    required String? jamiSotishNarx,
     File? rasm,
   });
 }

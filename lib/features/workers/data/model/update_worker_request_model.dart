@@ -7,6 +7,7 @@ class UpdateWorkerRequestModel extends UpdateWorkerRequestEntity {
     required super.parol,
     required super.telefon,
     required super.login,
+    super.foiz,
   });
 
   Map<String, dynamic> toJson() {
@@ -16,6 +17,7 @@ class UpdateWorkerRequestModel extends UpdateWorkerRequestEntity {
       'parol': parol,
       'telefon': telefon,
       'login': login,
+      'foiz': foiz,
     };
   }
 }

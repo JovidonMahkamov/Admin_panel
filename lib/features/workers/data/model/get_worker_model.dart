@@ -9,6 +9,7 @@ class GetWorkerModel extends GetWorkerEntity {
     required super.yaratilgan,
     required super.parol,
     required super.isActive,
+    super.foiz,
   });
 
   factory GetWorkerModel.fromJson(Map<String, dynamic> json) {
@@ -20,6 +21,7 @@ class GetWorkerModel extends GetWorkerEntity {
       parol: json['parol'] ?? '',
       yaratilgan: DateTime.tryParse(json['yaratilgan'] ?? '') ?? DateTime.now(),
       isActive: json['is_active'] ?? true,
+      foiz: (json['foiz'] ?? 0).toDouble(),
     );
   }
 
@@ -30,6 +32,7 @@ class GetWorkerModel extends GetWorkerEntity {
       'telefon': telefon,
       'login': login,
       'parol': parol,
+      'foiz': foiz,
       'yaratilgan': yaratilgan.toIso8601String(),
       'is_active': isActive,
     };
